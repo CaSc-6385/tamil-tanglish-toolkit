@@ -1,0 +1,23 @@
+{
+  "name": "tamil-edu-toolkit",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tanglish to Tamil translator for kids learning the language. Web and iOS. Part of Academy of Smart Thinkers.",
+  "homepage": "https://www.academyofsmartthinkers.com/",
+  "license": "MIT",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "lint": "pnpm -r --if-present lint && prettier --check \"**/*.{md,yml,yaml,json}\" --ignore-path .gitignore",
+    "format": "prettier --write \"**/*.{md,yml,yaml,json}\" --ignore-path .gitignore && pnpm -r --if-present format",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  }
+}

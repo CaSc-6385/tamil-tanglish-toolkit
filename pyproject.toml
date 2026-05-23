@@ -1,0 +1,48 @@
+[project]
+name = "tamil-edu-toolkit"
+version = "0.0.0"
+description = "Tanglish to Tamil translator for kids learning the language."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+[tool.uv.workspace]
+members = ["apps/api", "packages/transliterate", "packages/grammar", "packages/ocr", "packages/pylib", "eval"]
+exclude = []
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [".venv", "build", "dist", "node_modules", ".next"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+    "RUF",  # ruff-specific
+]
+ignore = ["E501"]  # line-length handled by formatter
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["apps", "packages", "eval"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = ["-ra", "--strict-markers"]
+
+[tool.coverage.run]
+branch = true
+source = ["apps", "packages", "eval"]
+omit = ["**/tests/**", "**/__init__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 80

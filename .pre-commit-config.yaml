@@ -1,0 +1,56 @@
+# Pre-commit hooks — run before every commit to catch issues fast.
+# Install once after cloning: `pre-commit install`
+# Run manually on all files: `pre-commit run --all-files`
+# Bypassing hooks (--no-verify) is forbidden per docs/DEVELOPMENT.md §12.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        types_or: [markdown, yaml, json]
+        exclude: ^(pnpm-lock\.yaml|uv\.lock)$
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, .secrets.baseline]
+        exclude: ^(pnpm-lock\.yaml|uv\.lock|\.secrets\.baseline)$
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.42.0
+    hooks:
+      - id: markdownlint
+        args: [--config, .markdownlint.json]
+        exclude: ^(docs/adr/.*\.md)$  # ADRs follow their own template
+
+ci:
+  autofix_commit_msg: |
+    chore(pre-commit): auto-fix from pre-commit hooks
+
+    Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+  autoupdate_commit_msg: 'chore(pre-commit): pre-commit autoupdate'
+  autoupdate_schedule: monthly
