@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment jsdom
+ */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock posthog-js so tests don't try to talk to the network

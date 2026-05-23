@@ -1,14 +1,16 @@
-"""Pytest fixtures for the API tests.
+"""Pytest configuration for the API tests.
 
-Pin TRANSLITERATE_BACKEND=baseline by default so existing contract tests
-(which assert passthrough output) stay deterministic. Individual tests that
-want a different backend can monkeypatch the env var.
+Pin TRANSLITERATE_BACKEND=baseline so existing contract tests (which assert
+passthrough output) stay deterministic regardless of production default.
+Individual tests that want a different backend can use monkeypatch.setenv.
+
+Module-level setdefault — runs when pytest imports conftest, before any test
+module is imported. (pytest_configure hook is the alternative but it
+PluginValidationError's on stricter pluggy versions if the signature is wrong.)
 """
 
 from __future__ import annotations
 
 import os
 
-
-def pytest_configure(_config: object) -> None:
-    os.environ.setdefault("TRANSLITERATE_BACKEND", "baseline")
+os.environ.setdefault("TRANSLITERATE_BACKEND", "baseline")
