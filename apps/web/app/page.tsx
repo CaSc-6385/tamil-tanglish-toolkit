@@ -1,0 +1,168 @@
+"use client";
+
+import { useState } from "react";
+
+import { translate, type TranslateResponse } from "@/lib/api";
+
+const SAMPLES = [
+  "vanakkam nanba",
+  "nalla iruka?",
+  "naan padikiren",
+  "send the message reply pannu",
+];
+
+export default function HomePage() {
+  const [input, setInput] = useState("");
+  const [result, setResult] = useState<TranslateResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!input.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await translate(input, 3);
+      setResult(r);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setError(msg);
+      setResult(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onCopy() {
+    if (!result) return;
+    await navigator.clipboard.writeText(result.tamil);
+  }
+
+  return (
+    <main className="mx-auto max-w-2xl px-6 py-10">
+      <header className="mb-8 text-center">
+        <h1 className="text-4xl font-bold text-aost-700">AOST Tamil</h1>
+        <p className="mt-2 text-lg text-aost-900/80">
+          Type Tanglish, get Tamil. <span className="font-tamil">வணக்கம்! 🌸</span>
+        </p>
+      </header>
+
+      <form onSubmit={onSubmit} className="mb-6">
+        <label htmlFor="tanglish" className="mb-2 block text-base font-medium">
+          Type in Tanglish:
+        </label>
+        <textarea
+          id="tanglish"
+          name="tanglish"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="e.g. vanakkam nanba"
+          rows={3}
+          className="w-full rounded-2xl border-2 border-aost-300 bg-white px-4 py-3 text-kid placeholder:text-aost-400 focus:border-aost-500"
+          aria-describedby="tanglish-help"
+        />
+        <p id="tanglish-help" className="mt-1 text-sm text-aost-900/60">
+          Up to 2000 characters. Try a sample below to get started.
+        </p>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          {SAMPLES.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setInput(s)}
+              className="rounded-full border border-aost-300 bg-aost-100 px-3 py-1 text-sm text-aost-700 hover:bg-aost-200"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading || !input.trim()}
+          className="mt-4 w-full rounded-2xl bg-aost-500 px-5 py-3 text-lg font-semibold text-white shadow-sm hover:bg-aost-600 disabled:cursor-not-allowed disabled:bg-aost-300"
+        >
+          {loading ? "Translating…" : "Translate to Tamil"}
+        </button>
+      </form>
+
+      {error && (
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-red-900"
+        >
+          <p className="font-medium">Could not translate</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+
+      {result && (
+        <section aria-labelledby="output-heading" className="mb-8">
+          <div className="flex items-baseline justify-between">
+            <h2 id="output-heading" className="text-lg font-medium text-aost-900">
+              Tamil:
+            </h2>
+            <span className="text-xs text-aost-900/50">
+              {result.backend} · {result.duration_ms} ms
+            </span>
+          </div>
+
+          <div className="mt-2 rounded-2xl border-2 border-aost-400 bg-aost-50 px-5 py-4">
+            <p className="font-tamil text-kid-lg" lang="ta">
+              {result.tamil}
+            </p>
+          </div>
+
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={onCopy}
+              className="rounded-xl border border-aost-400 bg-white px-4 py-2 text-sm font-medium text-aost-700 hover:bg-aost-100"
+            >
+              Copy
+            </button>
+          </div>
+
+          {result.alternatives.length > 1 && (
+            <details className="mt-4 rounded-xl bg-white/60 px-4 py-3">
+              <summary className="cursor-pointer text-sm font-medium text-aost-700">
+                See {result.alternatives.length - 1} alternative
+                {result.alternatives.length - 1 === 1 ? "" : "s"}
+              </summary>
+              <ul className="mt-2 space-y-1 text-base">
+                {result.alternatives.slice(1).map((alt, i) => (
+                  <li key={i} className="font-tamil" lang="ta">
+                    {alt}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </section>
+      )}
+
+      <footer className="mt-12 border-t border-aost-200 pt-6 text-center text-sm text-aost-900/60">
+        <p>
+          Part of{" "}
+          <a className="underline" href="https://www.academyofsmartthinkers.com/">
+            Academy of Smart Thinkers
+          </a>
+          . Open source on{" "}
+          <a className="underline" href="https://github.com/chandralabs/tamil-edu-toolkit">
+            GitHub
+          </a>
+          .
+        </p>
+        <p className="mt-1">
+          Engine:{" "}
+          <a className="underline" href="https://github.com/chandralabs/tamil-llama">
+            chandralabs/tamil-llama
+          </a>{" "}
+          + IndicXlit.
+        </p>
+      </footer>
+    </main>
+  );
+}

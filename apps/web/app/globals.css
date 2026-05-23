@@ -1,0 +1,32 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 255 248 234;
+  --foreground: 60 38 14;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 30 24 18;
+    --foreground: 250 245 235;
+  }
+}
+
+html,
+body {
+  background-color: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* Kid-friendly focus ring */
+:focus-visible {
+  outline: 3px solid theme("colors.aost.500");
+  outline-offset: 2px;
+  border-radius: 6px;
+}

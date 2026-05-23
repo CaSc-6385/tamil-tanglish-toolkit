@@ -8,10 +8,12 @@ license = { text = "MIT" }
 # Each must be sourced from the workspace via [tool.uv.sources] below.
 dependencies = [
     "tamil-edu-transliterate",
+    "tamil-edu-api",
 ]
 
 [tool.uv.sources]
 tamil-edu-transliterate = { workspace = true }
+tamil-edu-api = { workspace = true }
 
 [project.optional-dependencies]
 dev = [
@@ -23,6 +25,10 @@ dev = [
     # so `uv sync --all-extras` at the root installs them for pytest in CI).
     "jiwer>=3.0.4",
     "sacrebleu>=2.4.3",
+    # API test deps (apps/api/pyproject.toml has these in its own [dev] extras, but
+    # root --all-extras only sees root's extras, so duplicated here for CI).
+    "httpx>=0.27",
+    "pytest-asyncio>=0.24",
 ]
 
 [tool.uv]
@@ -31,8 +37,8 @@ package = false
 [tool.uv.workspace]
 # Only directories with a real, buildable pyproject.toml.
 # eval/ is a flat script dir (no pyproject) — its deps live in the root [dev] extras.
-# packages/{grammar,ocr,pylib,api} will be added as they get scaffolded in S1+.
-members = ["packages/transliterate"]
+# packages/{grammar,ocr,pylib} will be added as they get scaffolded in S2+.
+members = ["packages/transliterate", "apps/api"]
 exclude = []
 
 [tool.ruff]

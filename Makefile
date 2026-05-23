@@ -16,11 +16,10 @@ bootstrap:  ## One-time dev setup: install all deps + pre-commit hooks
 
 dev:  ## Run local dev servers (apps/web on :3000, apps/api on :8000)
 	@if [ ! -d apps/api ] || [ ! -d apps/web ]; then \
-		echo "No apps scaffolded yet — added in Sprint 1 (see docs/SPRINTS.md)"; \
-		echo "For Sprint 0, try: make eval"; \
-		exit 0; \
+		echo "Apps not scaffolded yet. Run 'make bootstrap' first."; \
+		exit 1; \
 	fi
-	@echo "TODO(S1): wire concurrently to boot web + api"
+	pnpm dev
 
 test:  ## Run all tests (Python + TS)
 	uv run pytest
