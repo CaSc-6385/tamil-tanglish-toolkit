@@ -25,6 +25,9 @@ dev = [
     # so `uv sync --all-extras` at the root installs them for pytest in CI).
     "jiwer>=3.0.4",
     "sacrebleu>=2.4.3",
+    # Rule-based transliteration backend (real-model substitute for IndicXlit until
+    # the fairseq/Python 3.11+ blockage is resolved; see docs/adr/0002-indicxlit-deferred.md).
+    "aksharamukha>=2.2",
     # API test deps (apps/api/pyproject.toml has these in its own [dev] extras, but
     # root --all-extras only sees root's extras, so duplicated here for CI).
     "httpx>=0.27",

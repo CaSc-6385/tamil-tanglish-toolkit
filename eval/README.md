@@ -28,25 +28,40 @@ MODELS["my-model"] = MyModel
 
 Then: `uv run python -m eval.run --model my-model`.
 
-## Running the real IndicXlit model
+## Running real-model eval
 
-The `indicxlit` model is registered but requires the optional `ai4bharat-transliteration`
-package. Two ways to use it:
+Three models are registered: `baseline` (passthrough), `aksharamukha` (rule-based,
+real Tamil), `indicxlit` (ML — currently blocked, see ADR-0002).
 
-**Locally on Linux or Python 3.11 (Windows Python 3.13 is broken — fairseq build fails):**
+### aksharamukha (works today)
+
+```bash
+uv run python -m eval.run --model aksharamukha --set v1
+```
+
+Pure Python, no ML deps, works on any Python version. **Quality is rough**: CER
+~35% on golden v1 (rule-based ceiling on Tanglish). Used as the working "real
+backend" until IndicXlit is unblocked. The `.github/workflows/eval-real.yml`
+workflow runs this automatically.
+
+### IndicXlit (currently blocked)
+
+The `indicxlit` model is registered but **cannot run today** — its dep
+`fairseq` has a `mutable default dataclass` error that breaks on Python ≥ 3.11,
+and our project requires Python ≥ 3.11. See [ADR-0002](../docs/adr/0002-indicxlit-deferred.md)
+for the full analysis and unblock criteria.
+
+When fairseq is fixed:
 
 ```bash
 uv add --package tamil-edu-transliterate "ai4bharat-transliteration>=1.1.3"
 uv run python -m eval.run --model indicxlit --set v1
 ```
 
-First call downloads ~1GB model, cached after that.
+### S1-1 acceptance status
 
-**In CI (recommended):** the `.github/workflows/eval-real.yml` workflow runs this
-automatically on a weekly schedule (Sundays 03:00 UTC), on any push to `main` that
-touches eval/data/transliterate code, and on manual trigger. Reports are committed
-back to `eval/reports/`. The S1-1 acceptance gate (CER ≤ 0.15) is enforced — workflow
-fails if quality regresses below threshold.
+PLAN.md S1-1 target is CER ≤ 15%. **Not met** today (aksharamukha is at 35%;
+IndicXlit blocked). Tracked as carry-over to a future sprint per ADR-0002.
 
 ## Golden set schema (`data/golden/v1.csv`)
 

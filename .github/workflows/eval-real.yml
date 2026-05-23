@@ -1,18 +1,19 @@
-name: Eval (real IndicXlit model)
+name: Eval (real backend)
 
-# Runs the eval harness against the actual ai4bharat IndicXlit Tamil model.
-# Slow (~5 min for install + model download) and expensive in CI minutes —
-# so it runs only on demand or weekly, not on every push.
+# Runs the eval harness against a real (non-baseline) transliteration backend
+# on the golden set. Currently aksharamukha (rule-based) because IndicXlit
+# can't be installed on Python 3.11+ due to a fairseq bug — see
+# docs/adr/0002-indicxlit-deferred.md. Switch back to indicxlit when unblocked.
 #
 # Trigger:
-#   - Manually via the Actions tab → "Eval (real IndicXlit model)" → Run workflow
-#   - Weekly via cron (Sunday 03:00 UTC) to catch model/data regressions
+#   - Manually via the Actions tab
+#   - Weekly via cron (Sundays 03:00 UTC) to catch regressions
 #   - When eval/, data/golden/, or packages/transliterate/ change on main
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 3 * * 0" # Sundays at 03:00 UTC
+    - cron: "0 3 * * 0"
   push:
     branches: [main]
     paths:
@@ -26,9 +27,9 @@ permissions:
 
 jobs:
   eval:
-    name: Eval IndicXlit on golden v1
+    name: Eval aksharamukha on golden v1
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -38,30 +39,32 @@ jobs:
           version: "0.4.30"
           cache-dependency-glob: "**/pyproject.toml"
 
-      - name: Use Python 3.10 (fairseq dataclass bug fails on 3.11+)
-        run: uv python install 3.10
+      - name: Set up Python 3.11
+        run: uv python install 3.11
 
-      - name: Install workspace + indicxlit extra
-        run: |
-          uv sync --all-extras --python 3.10
-          uv pip install --python .venv/bin/python "ai4bharat-transliteration>=1.1.3"
+      - name: Install workspace + dev extras (includes aksharamukha)
+        run: uv sync --all-extras
 
-      - name: Run eval (full golden v1)
+      - name: Run eval (full golden v1, JSON to inspect metrics)
         id: eval
         run: |
-          uv run python -m eval.run --model indicxlit --set v1 --json --no-report > /tmp/eval.json
+          uv run python -m eval.run --model aksharamukha --set v1 --json --no-report > /tmp/eval.json
           cat /tmp/eval.json
-          echo "cer=$(python -c 'import json,sys; print(json.load(open("/tmp/eval.json"))["cer"])')" >> $GITHUB_OUTPUT
+          echo "cer=$(python -c 'import json; print(json.load(open(\"/tmp/eval.json\"))[\"cer\"])')" >> $GITHUB_OUTPUT
 
-      - name: Run eval (full) with markdown report
-        run: uv run python -m eval.run --model indicxlit --set v1
+      - name: Run eval with markdown report
+        run: uv run python -m eval.run --model aksharamukha --set v1
 
-      - name: "Gate — CER must be at most 0.15 (S1-1 acceptance)"
+      - name: "Observability — CER must not regress >5 pp vs. baseline 0.36"
+        # NOT the S1-1 acceptance gate (that requires IndicXlit; see ADR-0002).
+        # This is a tripwire: if aksharamukha CER suddenly jumps it tells us
+        # something in tokenizer / golden set / dictionary changed.
         run: |
           CER=$(python -c 'import json; print(json.load(open("/tmp/eval.json"))["cer"])')
-          THRESHOLD=0.15
-          echo "CER = $CER (gate ≤ $THRESHOLD)"
-          python -c "import sys; sys.exit(0 if float('$CER') <= float('$THRESHOLD') else 1)"
+          BASELINE=0.36
+          MAX_REGRESSION=0.05
+          echo "CER = $CER (current aksharamukha baseline = $BASELINE; alert at +$MAX_REGRESSION)"
+          python -c "import sys; sys.exit(0 if float('$CER') <= float('$BASELINE') + float('$MAX_REGRESSION') else 1)"
 
       - name: Commit eval report (only on push to main)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -72,6 +75,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No new report to commit"
           else
-            git commit -m "chore(eval): nightly IndicXlit report (CER=${{ steps.eval.outputs.cer }})"
+            git commit -m "chore(eval): aksharamukha report (CER=${{ steps.eval.outputs.cer }})"
             git push
           fi

@@ -189,8 +189,13 @@ class IndicXlitModel:
         uv add --package tamil-edu-transliterate "ai4bharat-transliteration>=1.1.3"
         uv run python -m eval.run --model indicxlit --set v1
 
-    Note (Windows + Python 3.13): ai4bharat-transliteration pulls fairseq
-    which has no wheel for Py 3.13. Use Python 3.11 OR run in Linux (CI does).
+    **CURRENTLY BLOCKED**: ai4bharat-transliteration depends on fairseq, which
+    has a `dataclass mutable default` bug that breaks on Python ≥ 3.11. Our
+    project requires Python ≥ 3.11. Resolution requires either:
+      (a) fairseq upstream fix (no recent activity), OR
+      (b) lower our Python floor to 3.10 (loses StrEnum, etc.), OR
+      (c) host IndicXlit as a separate service on Py 3.10.
+    See docs/adr/0002-indicxlit-deferred.md.
     """
 
     name = "indicxlit"
@@ -204,8 +209,44 @@ class IndicXlitModel:
         return self._impl.transliterate(tanglish)
 
 
+class AksharamukhaModel:
+    """Rule-based Tamil transliteration via aksharamukha.
+
+    Pure Python, no ML deps, works on any Python version. Quality is meaningfully
+    lower than IndicXlit (rule tables can't capture Tanglish conventions like
+    `nb` → `ண்ப` or doubled consonants), but unblocks end-to-end eval today.
+
+    Treats input as ITRANS-like (closest scheme to common Tanglish).
+    """
+
+    name = "aksharamukha"
+
+    def __init__(self) -> None:
+        try:
+            from aksharamukha import transliterate  # type: ignore[import-untyped]
+        except ImportError as exc:
+            raise SystemExit(
+                "aksharamukha not installed. Install with: pip install aksharamukha"
+            ) from exc
+        self._fn = transliterate.process
+
+    def predict(self, tanglish: str) -> str:
+        # Tokenize so we only run rule-based transliteration on Tanglish tokens,
+        # passing through English / punctuation / whitespace verbatim (S1-2 contract).
+        from tamil_edu_transliterate import TokenKind, tokenize
+
+        out: list[str] = []
+        for tok in tokenize(tanglish):
+            if tok.kind == TokenKind.TANGLISH:
+                out.append(self._fn("IAST", "Tamil", tok.text))
+            else:
+                out.append(tok.text)
+        return "".join(out)
+
+
 MODELS: dict[str, Callable[[], Model]] = {
     "baseline": BaselineModel,
+    "aksharamukha": AksharamukhaModel,
     "indicxlit": IndicXlitModel,
 }
 
