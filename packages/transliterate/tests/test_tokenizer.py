@@ -123,8 +123,10 @@ def test_acronym_three_letters() -> None:
 
 
 def test_single_capital_letter_not_acronym() -> None:
-    # Single letter could be a Tamil sound; safer to transliterate
-    assert tokenize("A")[0].kind == TokenKind.TANGLISH
+    # Single letter that isn't in the English dictionary stays as Tanglish.
+    # ('A' and 'I' are in the dict as the article / pronoun via lowercase lookup.)
+    assert tokenize("Z")[0].kind == TokenKind.TANGLISH
+    assert tokenize("Q")[0].kind == TokenKind.TANGLISH
 
 
 # ---- Brand names (mixed case with internal capitals) ----
