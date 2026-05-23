@@ -56,6 +56,8 @@ def test_exports_are_public() -> None:
 
 def test_transliterator_protocol_runtime_checkable() -> None:
     """A custom class implementing the right shape should satisfy isinstance check."""
+    from tamil_edu_transliterate import Word
+    from tamil_edu_transliterate.tokenizer import TokenKind
 
     class Stub:
         name = "stub"
@@ -65,6 +67,9 @@ def test_transliterator_protocol_runtime_checkable() -> None:
 
         def alternatives(self, text: str, *, topk: int = 3) -> list[str]:
             return [text]
+
+        def transliterate_detailed(self, text: str, *, topk: int = 3) -> list[Word]:
+            return [Word(source=text, text=text, kind=TokenKind.TANGLISH, alternatives=[])]
 
     assert isinstance(Stub(), Transliterator)
     assert isinstance(BaselineTransliterator(), Transliterator)
