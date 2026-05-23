@@ -303,7 +303,12 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     if not args.no_report:
         path = write_report(report)
-        print(f"Report: {path.relative_to(REPO_ROOT)}", file=sys.stderr)
+        # Show repo-relative path when possible; otherwise the absolute path.
+        try:
+            shown = path.relative_to(REPO_ROOT)
+        except ValueError:
+            shown = path
+        print(f"Report: {shown}", file=sys.stderr)
 
     if args.emit_json:
         print(json.dumps(summary, indent=2))
