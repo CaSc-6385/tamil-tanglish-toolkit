@@ -19,6 +19,9 @@
     "build": "pnpm -r --if-present build",
     "typecheck": "pnpm -r --if-present typecheck"
   },
+  "dependencies": {
+    "next": "14.2.15"
+  },
   "devDependencies": {
     "concurrently": "^9.0.1",
     "prettier": "^3.3.3"
