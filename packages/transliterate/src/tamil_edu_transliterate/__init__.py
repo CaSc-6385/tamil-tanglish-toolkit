@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from tamil_edu_transliterate.aksharamukha import AksharamukhaTransliterator
 from tamil_edu_transliterate.base import TransliterationError, Transliterator, Word
 from tamil_edu_transliterate.baseline import BaselineTransliterator
 from tamil_edu_transliterate.indicxlit import IndicXlitTransliterator
 from tamil_edu_transliterate.tokenizer import Token, TokenKind, tokenize
 
 __all__ = [
+    "AksharamukhaTransliterator",
     "BaselineTransliterator",
     "IndicXlitTransliterator",
     "Token",
@@ -27,10 +29,14 @@ def _get(backend: str) -> Transliterator:
     if backend not in _BACKENDS:
         if backend == "baseline":
             _BACKENDS[backend] = BaselineTransliterator()
+        elif backend == "aksharamukha":
+            _BACKENDS[backend] = AksharamukhaTransliterator()
         elif backend == "indicxlit":
             _BACKENDS[backend] = IndicXlitTransliterator()
         else:
-            raise ValueError(f"Unknown backend '{backend}'. Available: baseline, indicxlit")
+            raise ValueError(
+                f"Unknown backend '{backend}'. Available: baseline, aksharamukha, indicxlit"
+            )
     return _BACKENDS[backend]
 
 

@@ -3,11 +3,11 @@
 Run locally:
     uv run uvicorn tamil_edu_api.main:app --reload --port 8000
 
-Default backend is `baseline` (passthrough, no model download). To use the real
-IndicXlit model, install the extra and set the env var:
-    uv add 'tamil-edu-transliterate[indicxlit]'
-    $env:TRANSLITERATE_BACKEND = "indicxlit"   # PowerShell
-    export TRANSLITERATE_BACKEND=indicxlit     # bash
+Default backend is `aksharamukha` (rule-based, real Tamil output). Other options
+via env var:
+    TRANSLITERATE_BACKEND=baseline    # passthrough (testing / no model)
+    TRANSLITERATE_BACKEND=aksharamukha # rule-based real Tamil (default)
+    TRANSLITERATE_BACKEND=indicxlit   # ML model — currently blocked (ADR-0002)
 """
 
 from __future__ import annotations
@@ -29,25 +29,34 @@ from tamil_edu_api.models import (
     WordOut,
 )
 
-# ---- Config (env-var driven) ----
+_VALID_BACKENDS = frozenset({"baseline", "aksharamukha", "indicxlit"})
 
-BACKEND = os.environ.get("TRANSLITERATE_BACKEND", "baseline").strip().lower()
-ALLOWED_ORIGINS = [
-    o.strip()
-    for o in os.environ.get(
-        "CORS_ORIGINS",
-        "http://localhost:3000,http://127.0.0.1:3000",
-    ).split(",")
-    if o.strip()
-]
+
+def get_backend() -> str:
+    """Read the active backend from env each call so tests + dev can override
+    without restarting the app. Falls back to aksharamukha (real Tamil) if unset.
+    """
+    return os.environ.get("TRANSLITERATE_BACKEND", "aksharamukha").strip().lower()
+
+
+def _allowed_origins() -> list[str]:
+    return [
+        o.strip()
+        for o in os.environ.get(
+            "CORS_ORIGINS",
+            "http://localhost:3000,http://127.0.0.1:3000",
+        ).split(",")
+        if o.strip()
+    ]
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Validate backend choice at boot — fail fast on misconfig."""
-    if BACKEND not in {"baseline", "indicxlit"}:
+    backend = get_backend()
+    if backend not in _VALID_BACKENDS:
         raise RuntimeError(
-            f"TRANSLITERATE_BACKEND={BACKEND!r} is invalid. Use 'baseline' or 'indicxlit'."
+            f"TRANSLITERATE_BACKEND={backend!r} is invalid. Use one of {sorted(_VALID_BACKENDS)}."
         )
     yield
 
@@ -61,7 +70,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=_allowed_origins(),
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],
@@ -70,14 +79,15 @@ app.add_middleware(
 
 @app.get("/health", response_model=HealthResponse, tags=["meta"])
 async def health() -> HealthResponse:
-    return HealthResponse(status="ok", backend=BACKEND, version=__version__)
+    return HealthResponse(status="ok", backend=get_backend(), version=__version__)
 
 
 @app.post("/translate", response_model=TranslateResponse, tags=["translate"])
 async def translate_endpoint(req: TranslateRequest) -> TranslateResponse:
+    backend = get_backend()
     start = time.perf_counter()
     try:
-        backend_inst = _get(BACKEND)
+        backend_inst = _get(backend)
         words = backend_inst.transliterate_detailed(req.text, topk=req.topk)
     except TransliterationError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
@@ -109,6 +119,6 @@ async def translate_endpoint(req: TranslateRequest) -> TranslateResponse:
         tamil=tamil,
         alternatives=alternatives,
         words=words_out,
-        backend=BACKEND,
+        backend=backend,
         duration_ms=duration_ms,
     )

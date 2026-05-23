@@ -8,7 +8,9 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.31.0",
     "pydantic>=2.9",
-    "tamil-edu-transliterate",
+    # Production needs the aksharamukha extra so real Tamil works out of the box.
+    # IndicXlit extra omitted — currently blocked (ADR-0002).
+    "tamil-edu-transliterate[aksharamukha]",
 ]
 
 [project.optional-dependencies]

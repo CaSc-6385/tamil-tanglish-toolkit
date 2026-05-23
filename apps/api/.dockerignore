@@ -1,0 +1,45 @@
+# Don't ship tests / caches / venvs into the image
+**/tests/
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache/
+**/.venv/
+**/node_modules/
+**/.next/
+**/.expo/
+
+# Coverage / reports
+htmlcov/
+.coverage
+coverage.xml
+eval/reports/
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+.github/
+
+# Docs (image doesn't serve them)
+docs/
+
+# Eval (not needed at runtime)
+eval/
+
+# Web (api image doesn't need web)
+apps/web/
+apps/mobile/
+apps/extension/
+
+# Lock files / dev-only configs
+.pre-commit-config.yaml
+.markdownlint.json
+.secrets.baseline
+.prettierrc
+.prettierignore
+Makefile
+README.md
+LICENSE

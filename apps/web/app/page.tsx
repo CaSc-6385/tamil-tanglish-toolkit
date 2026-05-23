@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { translate, type TranslateResponse, type Word } from "@/lib/api";
+import { capture, initPostHog } from "@/lib/posthog";
 import { useHistory } from "@/lib/use-history";
 
 const SAMPLES = [
@@ -24,6 +25,11 @@ export default function HomePage() {
 
   const { history, add: addHistory, remove: removeHistory, clear: clearHistory } = useHistory();
 
+  // Initialize PostHog once on mount (no-op if NEXT_PUBLIC_POSTHOG_KEY unset).
+  useEffect(() => {
+    initPostHog();
+  }, []);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim()) return;
@@ -31,14 +37,28 @@ export default function HomePage() {
     setError(null);
     setOverrides({});
     setOpenIdx(null);
+    const tStart = performance.now();
+    capture("translate.requested", { length: input.length });
     try {
       const r = await translate(input, 3);
       setResult(r);
       addHistory({ tanglish: input, tamil: r.tamil, backend: r.backend });
+      capture("translate.succeeded", {
+        backend: r.backend,
+        input_length: input.length,
+        output_length: r.tamil.length,
+        duration_ms: Math.round(performance.now() - tStart),
+        server_duration_ms: r.duration_ms,
+        word_count: r.words.length,
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
       setResult(null);
+      capture("translate.error", {
+        message_class: msg.slice(0, 80),
+        input_length: input.length,
+      });
     } finally {
       setLoading(false);
     }
