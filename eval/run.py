@@ -232,9 +232,7 @@ def run(
     domain: str | None,
 ) -> Report:
     if model_name not in MODELS:
-        raise SystemExit(
-            f"Unknown model '{model_name}'. Available: {sorted(MODELS)}"
-        )
+        raise SystemExit(f"Unknown model '{model_name}'. Available: {sorted(MODELS)}")
     model = MODELS[model_name]()
     pairs = load_pairs(set_name)
     if domain:
@@ -268,11 +266,15 @@ def write_report(report: Report) -> Path:
 def main(argv: Iterable[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="eval.run", description=__doc__)
     p.add_argument("--model", default="baseline", help=f"Available: {sorted(MODELS)}")
-    p.add_argument("--set", dest="set_name", default="v1", help="Golden set name (CSV in data/golden/)")
+    p.add_argument(
+        "--set", dest="set_name", default="v1", help="Golden set name (CSV in data/golden/)"
+    )
     p.add_argument("--sample", type=int, default=None, help="Limit pairs (None = all)")
     p.add_argument("--domain", default=None, help="Filter to one domain")
     p.add_argument("--no-report", action="store_true", help="Skip writing markdown report")
-    p.add_argument("--json", dest="emit_json", action="store_true", help="Emit JSON summary to stdout")
+    p.add_argument(
+        "--json", dest="emit_json", action="store_true", help="Emit JSON summary to stdout"
+    )
     args = p.parse_args(list(argv) if argv is not None else None)
 
     report = run(args.model, args.set_name, args.sample, args.domain)

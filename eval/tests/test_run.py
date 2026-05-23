@@ -9,7 +9,6 @@ import pytest
 from eval.run import (
     BaselineModel,
     Pair,
-    Report,
     Result,
     _builtin_sample,
     load_pairs,
@@ -105,7 +104,9 @@ def test_pair_is_frozen_dataclass() -> None:
         p.tanglish = "changed"  # type: ignore[misc]
 
 
-def test_main_cli_smoke_writes_report(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+def test_main_cli_smoke_writes_report(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     import eval.run as runmod
 
     monkeypatch.setattr(runmod, "REPORTS_DIR", tmp_path)
@@ -119,8 +120,11 @@ def test_main_cli_smoke_writes_report(tmp_path: Path, monkeypatch: pytest.Monkey
     assert "Eval report" in reports[0].read_text(encoding="utf-8")
 
 
-def test_main_cli_json_output(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+def test_main_cli_json_output(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
     import json
+
     import eval.run as runmod
 
     monkeypatch.setattr(runmod, "REPORTS_DIR", tmp_path)
