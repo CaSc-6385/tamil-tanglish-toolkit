@@ -5,6 +5,10 @@ name: Eval (real backend)
 # can't be installed on Python 3.11+ due to a fairseq bug — see
 # docs/adr/0002-indicxlit-deferred.md. Switch back to indicxlit when unblocked.
 #
+# Report is uploaded as a workflow artifact (no commit back to main —
+# branch protection blocks github-actions[bot]). Download from the Actions
+# tab → run → Artifacts to inspect.
+#
 # Trigger:
 #   - Manually via the Actions tab
 #   - Weekly via cron (Sundays 03:00 UTC) to catch regressions
@@ -23,7 +27,7 @@ on:
       - ".github/workflows/eval-real.yml"
 
 permissions:
-  contents: write # commit the report back to eval/reports/
+  contents: read
 
 jobs:
   eval:
@@ -45,36 +49,38 @@ jobs:
       - name: Install workspace + dev extras (includes aksharamukha)
         run: uv sync --all-extras
 
-      - name: Run eval (full golden v1, JSON to inspect metrics)
+      - name: Run eval (full golden v1, JSON for gate + markdown for artifact)
         id: eval
         run: |
-          uv run python -m eval.run --model aksharamukha --set v1 --json --no-report > /tmp/eval.json
-          cat /tmp/eval.json
-          echo "cer=$(python -c 'import json; print(json.load(open(\"/tmp/eval.json\"))[\"cer\"])')" >> $GITHUB_OUTPUT
+          uv run python -m eval.run --model aksharamukha --set v1 --json --no-report > eval-result.json
+          cat eval-result.json
+          CER=$(python -c "import json; print(json.load(open('eval-result.json'))['cer'])")
+          echo "cer=$CER" >> "$GITHUB_OUTPUT"
+          uv run python -m eval.run --model aksharamukha --set v1
 
-      - name: Run eval with markdown report
-        run: uv run python -m eval.run --model aksharamukha --set v1
+      - name: Upload eval report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-aksharamukha-v1
+          path: |
+            eval/reports/*.md
+            eval-result.json
+          retention-days: 90
 
       - name: "Observability — CER must not regress >5 pp vs. baseline 0.36"
         # NOT the S1-1 acceptance gate (that requires IndicXlit; see ADR-0002).
-        # This is a tripwire: if aksharamukha CER suddenly jumps it tells us
-        # something in tokenizer / golden set / dictionary changed.
+        # Tripwire: catches sudden jumps from tokenizer / golden-set changes.
         run: |
-          CER=$(python -c 'import json; print(json.load(open("/tmp/eval.json"))["cer"])')
+          CER='${{ steps.eval.outputs.cer }}'
           BASELINE=0.36
           MAX_REGRESSION=0.05
           echo "CER = $CER (current aksharamukha baseline = $BASELINE; alert at +$MAX_REGRESSION)"
           python -c "import sys; sys.exit(0 if float('$CER') <= float('$BASELINE') + float('$MAX_REGRESSION') else 1)"
 
-      - name: Commit eval report (only on push to main)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Summary
+        if: always()
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add eval/reports/
-          if git diff --cached --quiet; then
-            echo "No new report to commit"
-          else
-            git commit -m "chore(eval): aksharamukha report (CER=${{ steps.eval.outputs.cer }})"
-            git push
-          fi
+          echo "## Eval results" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Model: aksharamukha" >> "$GITHUB_STEP_SUMMARY"
+          echo "- CER: ${{ steps.eval.outputs.cer }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Report: see Artifacts on this run" >> "$GITHUB_STEP_SUMMARY"
