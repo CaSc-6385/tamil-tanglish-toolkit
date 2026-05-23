@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { translate, type TranslateResponse } from "@/lib/api";
+import { translate, type TranslateResponse, type Word } from "@/lib/api";
 import { useHistory } from "@/lib/use-history";
 
 const SAMPLES = [
@@ -15,6 +15,10 @@ const SAMPLES = [
 export default function HomePage() {
   const [input, setInput] = useState("");
   const [result, setResult] = useState<TranslateResponse | null>(null);
+  // overrides[wordIndex] = chosen alternative text (per-word swap state)
+  const [overrides, setOverrides] = useState<Record<number, string>>({});
+  // openIdx = which word's popover is currently open
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,6 +29,8 @@ export default function HomePage() {
     if (!input.trim()) return;
     setLoading(true);
     setError(null);
+    setOverrides({});
+    setOpenIdx(null);
     try {
       const r = await translate(input, 3);
       setResult(r);
@@ -38,9 +44,14 @@ export default function HomePage() {
     }
   }
 
+  function currentTamil(): string {
+    if (!result) return "";
+    return result.words.map((w, i) => overrides[i] ?? w.text).join("");
+  }
+
   async function onCopy() {
     if (!result) return;
-    await navigator.clipboard.writeText(result.tamil);
+    await navigator.clipboard.writeText(currentTamil());
   }
 
   function loadFromHistory(tanglish: string) {
@@ -48,6 +59,11 @@ export default function HomePage() {
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  }
+
+  function pickAlternative(wordIdx: number, alt: string) {
+    setOverrides((prev) => ({ ...prev, [wordIdx]: alt }));
+    setOpenIdx(null);
   }
 
   return (
@@ -121,8 +137,17 @@ export default function HomePage() {
           </div>
 
           <div className="mt-2 rounded-2xl border-2 border-aost-400 bg-aost-50 px-5 py-4">
-            <p className="font-tamil text-kid-lg" lang="ta">
-              {result.tamil}
+            <p className="font-tamil text-kid-lg leading-relaxed" lang="ta">
+              {result.words.map((w, i) => (
+                <WordChip
+                  key={i}
+                  word={w}
+                  chosen={overrides[i] ?? w.text}
+                  isOpen={openIdx === i}
+                  onToggle={() => setOpenIdx(openIdx === i ? null : i)}
+                  onPick={(alt) => pickAlternative(i, alt)}
+                />
+              ))}
             </p>
           </div>
 
@@ -134,23 +159,10 @@ export default function HomePage() {
             >
               Copy
             </button>
+            <p className="self-center text-sm text-aost-900/60">
+              Tap any word with alternatives to swap.
+            </p>
           </div>
-
-          {result.alternatives.length > 1 && (
-            <details className="mt-4 rounded-xl bg-white/60 px-4 py-3">
-              <summary className="cursor-pointer text-sm font-medium text-aost-700">
-                See {result.alternatives.length - 1} alternative
-                {result.alternatives.length - 1 === 1 ? "" : "s"}
-              </summary>
-              <ul className="mt-2 space-y-1 text-base">
-                {result.alternatives.slice(1).map((alt, i) => (
-                  <li key={i} className="font-tamil" lang="ta">
-                    {alt}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          )}
         </section>
       )}
 
@@ -224,5 +236,67 @@ export default function HomePage() {
         </p>
       </footer>
     </main>
+  );
+}
+
+/**
+ * Inline word with alternative-picker popover.
+ *
+ * - Whitespace tokens render as-is (preserving spacing) with no interaction.
+ * - English / punctuation tokens render plain (no alternatives).
+ * - Tanglish tokens with >1 alternatives render as a button → popover.
+ */
+function WordChip({
+  word,
+  chosen,
+  isOpen,
+  onToggle,
+  onPick,
+}: {
+  word: Word;
+  chosen: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  onPick: (alt: string) => void;
+}) {
+  if (word.kind === "whitespace") {
+    return <span>{chosen}</span>;
+  }
+  if (word.kind !== "tanglish" || word.alternatives.length <= 1) {
+    return <span>{chosen}</span>;
+  }
+  return (
+    <span className="relative inline-block">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        aria-label={`${chosen} — ${word.alternatives.length} alternatives`}
+        className="rounded-md border-b-2 border-dotted border-aost-500 hover:bg-aost-100 focus:bg-aost-100"
+      >
+        {chosen}
+      </button>
+      {isOpen && (
+        <span
+          role="dialog"
+          aria-label={`Alternatives for ${chosen}`}
+          className="absolute left-0 top-full z-10 mt-1 min-w-[8rem] rounded-xl border-2 border-aost-400 bg-white p-2 text-base shadow-lg"
+        >
+          {word.alternatives.map((alt) => (
+            <button
+              key={alt}
+              type="button"
+              onClick={() => onPick(alt)}
+              className={`block w-full rounded-md px-2 py-1 text-left font-tamil hover:bg-aost-50 ${
+                alt === chosen ? "bg-aost-100 font-semibold" : ""
+              }`}
+              lang="ta"
+            >
+              {alt}
+            </button>
+          ))}
+        </span>
+      )}
+    </span>
   );
 }

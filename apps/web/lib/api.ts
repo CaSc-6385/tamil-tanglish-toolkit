@@ -3,9 +3,19 @@
  * The base URL comes from NEXT_PUBLIC_API_URL (defaults to localhost:8000 in dev).
  */
 
+export type WordKind = "tanglish" | "english" | "punctuation" | "whitespace";
+
+export type Word = {
+  source: string;
+  text: string;
+  kind: WordKind;
+  alternatives: string[];
+};
+
 export type TranslateResponse = {
   tamil: string;
   alternatives: string[];
+  words: Word[];
   backend: string;
   duration_ms: number;
 };

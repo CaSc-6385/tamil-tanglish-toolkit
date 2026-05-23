@@ -17,7 +17,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from tamil_edu_transliterate.base import TransliterationError
+from tamil_edu_transliterate.base import TransliterationError, Word
 from tamil_edu_transliterate.tokenizer import TokenKind, tokenize
 
 # Legacy regex retained for the test that exercises it directly; new code
@@ -114,3 +114,26 @@ class IndicXlitTransliterator:
                     assembled.append(t.text)
             results.append("".join(assembled))
         return results
+
+    def transliterate_detailed(self, text: str, *, topk: int = 3) -> list[Word]:
+        """Per-token output. For each Tanglish token, calls the engine ONCE
+        with the requested topk so alternatives are real (not synthesized).
+        Other token kinds pass through with empty alternatives.
+        """
+        if not text:
+            return []
+        out: list[Word] = []
+        for tok in tokenize(text):
+            if tok.kind == TokenKind.TANGLISH:
+                candidates = self._translit_token(tok.text, topk)
+                out.append(
+                    Word(
+                        source=tok.text,
+                        text=candidates[0],
+                        kind=tok.kind,
+                        alternatives=list(candidates[: max(topk, 1)]),
+                    )
+                )
+            else:
+                out.append(Word(source=tok.text, text=tok.text, kind=tok.kind, alternatives=[]))
+        return out

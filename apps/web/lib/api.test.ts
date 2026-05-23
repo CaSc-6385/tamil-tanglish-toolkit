@@ -21,6 +21,14 @@ describe("translate()", () => {
       json: async () => ({
         tamil: "வணக்கம்",
         alternatives: ["வணக்கம்"],
+        words: [
+          {
+            source: "vanakkam",
+            text: "வணக்கம்",
+            kind: "tanglish",
+            alternatives: ["வணக்கம்"],
+          },
+        ],
         backend: "indicxlit",
         duration_ms: 42,
       }),
@@ -30,12 +38,20 @@ describe("translate()", () => {
     expect(r.tamil).toBe("வணக்கம்");
     expect(r.backend).toBe("indicxlit");
     expect(r.duration_ms).toBe(42);
+    expect(r.words).toHaveLength(1);
+    expect(r.words[0].kind).toBe("tanglish");
   });
 
   it("posts JSON body with text + topk", async () => {
     const mock = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ tamil: "x", alternatives: [], backend: "baseline", duration_ms: 0 }),
+      json: async () => ({
+        tamil: "x",
+        alternatives: [],
+        words: [],
+        backend: "baseline",
+        duration_ms: 0,
+      }),
     });
     globalThis.fetch = mock as unknown as typeof fetch;
 

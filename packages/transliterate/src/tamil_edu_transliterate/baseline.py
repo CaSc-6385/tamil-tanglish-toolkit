@@ -9,6 +9,9 @@ Used as:
 
 from __future__ import annotations
 
+from tamil_edu_transliterate.base import Word
+from tamil_edu_transliterate.tokenizer import tokenize
+
 
 class BaselineTransliterator:
     """Returns input unchanged. No transliteration is performed."""
@@ -20,3 +23,11 @@ class BaselineTransliterator:
 
     def alternatives(self, text: str, *, topk: int = 3) -> list[str]:
         return [text]
+
+    def transliterate_detailed(self, text: str, *, topk: int = 3) -> list[Word]:
+        if not text:
+            return []
+        return [
+            Word(source=tok.text, text=tok.text, kind=tok.kind, alternatives=[])
+            for tok in tokenize(text)
+        ]

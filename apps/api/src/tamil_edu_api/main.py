@@ -19,10 +19,15 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from tamil_edu_transliterate import TransliterationError, transliterate
+from tamil_edu_transliterate import TransliterationError, _get  # type: ignore[attr-defined]
 
 from tamil_edu_api import __version__
-from tamil_edu_api.models import HealthResponse, TranslateRequest, TranslateResponse
+from tamil_edu_api.models import (
+    HealthResponse,
+    TranslateRequest,
+    TranslateResponse,
+    WordOut,
+)
 
 # ---- Config (env-var driven) ----
 
@@ -72,27 +77,38 @@ async def health() -> HealthResponse:
 async def translate_endpoint(req: TranslateRequest) -> TranslateResponse:
     start = time.perf_counter()
     try:
-        tamil = transliterate(req.text, backend=BACKEND, topk=req.topk)
+        backend_inst = _get(BACKEND)
+        words = backend_inst.transliterate_detailed(req.text, topk=req.topk)
     except TransliterationError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:  # unknown backend or bad input
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    # Alternatives via the backend's protocol method, separately
-    alternatives: list[str] = []
-    if req.topk > 1:
-        try:
-            from tamil_edu_transliterate import _get  # type: ignore[attr-defined]
+    tamil = "".join(w.text for w in words)
 
-            alternatives = _get(BACKEND).alternatives(req.text, topk=req.topk)
+    # Whole-string alternatives — best-effort, kept for v1 clients.
+    alternatives: list[str] = []
+    if req.topk > 1 and req.text:
+        try:
+            alternatives = backend_inst.alternatives(req.text, topk=req.topk)
         except (TransliterationError, ValueError):
-            # Surfacing alternatives is best-effort; don't fail the whole request.
             alternatives = [tamil]
+
+    words_out = [
+        WordOut(
+            source=w.source,
+            text=w.text,
+            kind=str(w.kind),
+            alternatives=w.alternatives,
+        )
+        for w in words
+    ]
 
     duration_ms = int((time.perf_counter() - start) * 1000)
     return TranslateResponse(
         tamil=tamil,
         alternatives=alternatives,
+        words=words_out,
         backend=BACKEND,
         duration_ms=duration_ms,
     )

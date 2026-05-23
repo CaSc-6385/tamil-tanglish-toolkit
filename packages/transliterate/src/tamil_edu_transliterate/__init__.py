@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from tamil_edu_transliterate.base import TransliterationError, Transliterator
+from tamil_edu_transliterate.base import TransliterationError, Transliterator, Word
 from tamil_edu_transliterate.baseline import BaselineTransliterator
 from tamil_edu_transliterate.indicxlit import IndicXlitTransliterator
 from tamil_edu_transliterate.tokenizer import Token, TokenKind, tokenize
@@ -14,6 +14,7 @@ __all__ = [
     "TokenKind",
     "TransliterationError",
     "Transliterator",
+    "Word",
     "tokenize",
     "transliterate",
 ]

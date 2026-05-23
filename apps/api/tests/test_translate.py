@@ -89,3 +89,40 @@ def test_cors_preflight_allows_localhost_3000(client: TestClient) -> None:
     )
     assert r.status_code == 200
     assert r.headers.get("access-control-allow-origin") == "http://localhost:3000"
+
+
+def test_translate_includes_per_word_array(client: TestClient) -> None:
+    body = client.post("/translate", json={"text": "send vanakkam"}).json()
+    assert "words" in body
+    assert isinstance(body["words"], list)
+    assert len(body["words"]) > 0
+
+
+def test_translate_words_round_trip_equals_tamil(client: TestClient) -> None:
+    """Joining all word.text values must equal the top-level tamil string."""
+    body = client.post("/translate", json={"text": "send vanakkam"}).json()
+    rebuilt = "".join(w["text"] for w in body["words"])
+    assert rebuilt == body["tamil"]
+
+
+def test_translate_words_have_required_fields(client: TestClient) -> None:
+    body = client.post("/translate", json={"text": "vanakkam"}).json()
+    word = body["words"][0]
+    for field in ("source", "text", "kind", "alternatives"):
+        assert field in word, f"missing field: {field}"
+    assert word["kind"] in {"tanglish", "english", "punctuation", "whitespace"}
+    assert isinstance(word["alternatives"], list)
+
+
+def test_translate_words_classify_english_vs_tanglish(client: TestClient) -> None:
+    body = client.post("/translate", json={"text": "send vanakkam"}).json()
+    by_source = {
+        w["source"]: w["kind"] for w in body["words"] if w["kind"] in {"english", "tanglish"}
+    }
+    assert by_source["send"] == "english"
+    assert by_source["vanakkam"] == "tanglish"
+
+
+def test_translate_words_empty_for_empty_input(client: TestClient) -> None:
+    body = client.post("/translate", json={"text": ""}).json()
+    assert body["words"] == []
