@@ -15,16 +15,13 @@ Reference: https://github.com/AI4Bharat/IndicXlit
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from tamil_edu_transliterate.base import TransliterationError
+from tamil_edu_transliterate.tokenizer import TokenKind, tokenize
 
-if TYPE_CHECKING:
-    pass
-
-# Split keeping the whitespace + punctuation as separators so we can reassemble
-# the output preserving the original spacing. Matches one or more non-space chars
-# OR one or more whitespace chars OR a single punctuation character.
+# Legacy regex retained for the test that exercises it directly; new code
+# routes through tokenize() in tokenizer.py.
 _TOKEN_RE = re.compile(r"\s+|[^\w\s]|\w+", flags=re.UNICODE)
 
 
@@ -78,45 +75,42 @@ class IndicXlitTransliterator:
     def transliterate(self, text: str, *, topk: int = 1) -> str:
         if not text:
             return text
-        tokens = _TOKEN_RE.findall(text)
         out: list[str] = []
-        for tok in tokens:
-            if tok.isspace() or not tok.isalpha():
-                out.append(tok)
-                continue
-            candidates = self._translit_token(tok, topk)
-            out.append(candidates[0])
+        for tok in tokenize(text):
+            if tok.kind == TokenKind.TANGLISH:
+                candidates = self._translit_token(tok.text, topk)
+                out.append(candidates[0])
+            else:
+                # WHITESPACE / PUNCTUATION / ENGLISH — pass through verbatim
+                out.append(tok.text)
         return "".join(out)
 
     def alternatives(self, text: str, *, topk: int = 3) -> list[str]:
         """Return top-K transliterations of the whole input.
 
-        Generates the cartesian product would explode for long inputs; we limit
-        to varying the FIRST word's candidates and keeping the rest of the
-        sentence at top-1. This is a good-enough alternatives UX for single
-        words and short phrases.
+        Cartesian product over every Tanglish token would explode; we limit to
+        varying the FIRST Tanglish token while keeping the rest at top-1. Good
+        enough UX for short inputs.
         """
         if not text:
             return [text]
-        tokens = _TOKEN_RE.findall(text)
-        # Find the first alphabetic token; vary its candidates.
-        first_alpha_idx = next(
-            (i for i, t in enumerate(tokens) if t.isalpha()),
+        toks = tokenize(text)
+        first_idx = next(
+            (i for i, t in enumerate(toks) if t.kind == TokenKind.TANGLISH),
             None,
         )
-        if first_alpha_idx is None:
+        if first_idx is None:
             return [text]
-        first_candidates = self._translit_token(tokens[first_alpha_idx], topk)
+        first_candidates = self._translit_token(toks[first_idx].text, topk)
         results: list[str] = []
         for cand in first_candidates[:topk]:
-            assembled = []
-            for i, tok in enumerate(tokens):
-                if i == first_alpha_idx:
+            assembled: list[str] = []
+            for i, t in enumerate(toks):
+                if i == first_idx:
                     assembled.append(cand)
-                elif tok.isspace() or not tok.isalpha():
-                    assembled.append(tok)
+                elif t.kind == TokenKind.TANGLISH:
+                    assembled.append(self._translit_token(t.text, 1)[0])
                 else:
-                    rest = self._translit_token(tok, 1)
-                    assembled.append(rest[0])
+                    assembled.append(t.text)
             results.append("".join(assembled))
         return results

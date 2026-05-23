@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { translate, type TranslateResponse } from "@/lib/api";
+import { useHistory } from "@/lib/use-history";
 
 const SAMPLES = [
   "vanakkam nanba",
@@ -17,6 +18,8 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const { history, add: addHistory, remove: removeHistory, clear: clearHistory } = useHistory();
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim()) return;
@@ -25,6 +28,7 @@ export default function HomePage() {
     try {
       const r = await translate(input, 3);
       setResult(r);
+      addHistory({ tanglish: input, tamil: r.tamil, backend: r.backend });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
@@ -37,6 +41,13 @@ export default function HomePage() {
   async function onCopy() {
     if (!result) return;
     await navigator.clipboard.writeText(result.tamil);
+  }
+
+  function loadFromHistory(tanglish: string) {
+    setInput(tanglish);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }
 
   return (
@@ -140,6 +151,55 @@ export default function HomePage() {
               </ul>
             </details>
           )}
+        </section>
+      )}
+
+      {history.length > 0 && (
+        <section aria-labelledby="history-heading" className="mb-10">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 id="history-heading" className="text-lg font-medium text-aost-900">
+              Recent translations
+            </h2>
+            <button
+              type="button"
+              onClick={clearHistory}
+              className="text-sm text-aost-700 underline hover:text-aost-900"
+              aria-label={`Clear all ${history.length} history items`}
+            >
+              Clear all
+            </button>
+          </div>
+          <ul className="space-y-2">
+            {history.map((h) => (
+              <li
+                key={h.id}
+                className="flex items-center justify-between rounded-xl border border-aost-200 bg-white px-3 py-2"
+              >
+                <button
+                  type="button"
+                  onClick={() => loadFromHistory(h.tanglish)}
+                  className="min-w-0 flex-1 truncate text-left"
+                  aria-label={`Reuse ${h.tanglish}`}
+                >
+                  <span className="block truncate text-sm text-aost-900/70">{h.tanglish}</span>
+                  <span className="font-tamil block truncate" lang="ta">
+                    {h.tamil}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeHistory(h.id)}
+                  className="ml-3 text-aost-900/40 hover:text-red-600"
+                  aria-label={`Remove ${h.tanglish}`}
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-aost-900/50">
+            Saved only on your device. No account, no upload.
+          </p>
         </section>
       )}
 
