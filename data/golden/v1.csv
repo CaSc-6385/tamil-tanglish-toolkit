@@ -1,0 +1,71 @@
+id,tanglish,expected_tamil,domain,difficulty,reviewer,notes
+conv-001,vanakkam,வணக்கம்,conversation,easy,sc-draft,greeting
+conv-002,nandri,நன்றி,conversation,easy,sc-draft,thank you
+conv-003,nalla iruka?,நல்லா இருக்கா?,conversation,medium,sc-draft,how are you (casual)
+conv-004,enna seiringa?,என்ன செய்றீங்க?,conversation,medium,sc-draft,what are you doing (formal)
+conv-005,enna pannra?,என்ன பண்றா?,conversation,medium,sc-draft,what are you doing (casual)
+conv-006,sapittiya?,சாப்பிட்டியா?,conversation,medium,sc-draft,have you eaten
+conv-007,sariya?,சரியா?,conversation,easy,sc-draft,is it ok
+conv-008,sari,சரி,conversation,easy,sc-draft,ok
+conv-009,illa,இல்ல,conversation,easy,sc-draft,no
+conv-010,aamam,ஆமாம்,conversation,easy,sc-draft,yes (affirmative)
+conv-011,po,போ,conversation,easy,sc-draft,go (imperative)
+conv-012,vaa,வா,conversation,easy,sc-draft,come (imperative)
+conv-013,kashtam,கஷ்டம்,conversation,medium,sc-draft,difficult
+conv-014,romba nalla iruku,ரொம்ப நல்லா இருக்கு,conversation,medium,sc-draft,it is very good
+conv-015,konjam wait pannu,கொஞ்சம் wait பண்ணு,conversation,medium,sc-draft,wait a little (code-switch)
+conv-016,naan ungalukku phone panren,நான் உங்களுக்கு phone பண்றேன்,conversation,hard,sc-draft,I will call you (code-switch)
+conv-017,aiyo,ஐயோ,conversation,easy,sc-draft,oh no (exclamation)
+conv-018,kadavul,கடவுள்,conversation,medium,sc-draft,god
+conv-019,puriyala,புரியல,conversation,medium,sc-draft,I don't understand
+conv-020,solla maatten,சொல்ல மாட்டேன்,conversation,hard,sc-draft,I won't say
+name-001,Chennai,சென்னை,names,easy,sc-draft,city
+name-002,Madurai,மதுரை,names,easy,sc-draft,city
+name-003,Coimbatore,கோயம்புத்தூர்,names,medium,sc-draft,city
+name-004,Karthik,கார்த்திக்,names,medium,sc-draft,common name
+name-005,Priya,பிரியா,names,easy,sc-draft,common name
+name-006,Senthil,செந்தில்,names,medium,sc-draft,common name
+name-007,Lakshmi,லட்சுமி,names,medium,sc-draft,common name
+name-008,Bharath,பாரத்,names,medium,sc-draft,common name
+name-009,Annamalai,அண்ணாமலை,names,hard,sc-draft,common name + place
+name-010,Kanchipuram,காஞ்சிபுரம்,names,hard,sc-draft,city
+name-011,Tirunelveli,திருநெல்வேலி,names,hard,sc-draft,city
+name-012,Subramanian,சுப்ரமணியன்,names,hard,sc-draft,common name
+name-013,Saraswathi,சரஸ்வதி,names,medium,sc-draft,common name
+name-014,Rajinikanth,ரஜினிகாந்த்,names,medium,sc-draft,famous actor
+name-015,Kamal Haasan,கமல் ஹாசன்,names,medium,sc-draft,famous actor
+name-016,Vijay,விஜய்,names,easy,sc-draft,common name + actor
+name-017,Ilaiyaraaja,இளையராஜா,names,hard,sc-draft,famous composer
+name-018,Bharathiyar,பாரதியார்,names,medium,sc-draft,famous poet
+name-019,Periyar,பெரியார்,names,medium,sc-draft,historical figure
+name-020,Mu Karunanidhi,மு. கருணாநிதி,names,hard,sc-draft,historical figure
+school-001,naan padikiren,நான் படிக்கிறேன்,school,medium,sc-draft,I am studying
+school-002,en peyar Ravi,என் பெயர் ரவி,school,medium,sc-draft,my name is Ravi
+school-003,vaguppil teacher iruka,வகுப்பில் டீச்சர் இருக்கா,school,hard,sc-draft,is the teacher in class (code-switch)
+school-004,enakku Tamil pidikum,எனக்கு தமிழ் பிடிக்கும்,school,medium,sc-draft,I like Tamil
+school-005,homework mudichachu,homework முடிச்சாச்சு,school,medium,sc-draft,homework is done (code-switch)
+school-006,naalaikku exam iruku,நாளைக்கு exam இருக்கு,school,medium,sc-draft,exam tomorrow (code-switch)
+school-007,kanitham easy-a iruku,கணிதம் easy-ஆ இருக்கு,school,hard,sc-draft,math is easy (code-switch)
+school-008,naangu pasanga vandhom,நாங்கு பசங்க வந்தோம்,school,hard,sc-draft,four kids came
+school-009,puthagam edu,புத்தகம் எடு,school,medium,sc-draft,take the book
+school-010,paadam padi,பாடம் படி,school,medium,sc-draft,study the lesson
+news-001,Modi indru pesinaar,மோடி இன்று பேசினார்,news,medium,sc-draft,Modi spoke today
+news-002,vidiyalil mazhai vilum,விடியலில் மழை விழும்,news,hard,sc-draft,rain will fall at dawn (literary)
+news-003,Chennai aatchikku puthiya thittam,சென்னை ஆட்சிக்கு புதிய திட்டம்,news,hard,sc-draft,new plan for Chennai administration
+news-004,thanga vilai athigam aagiyathu,தங்க விலை அதிகம் ஆகியது,news,hard,sc-draft,gold price has increased
+news-005,paaviyana selavu konjam,பாவியான செலவு கொஞ்சம்,news,hard,sc-draft,affordable expense is little
+news-006,kalvi vidayil maatram,கல்வி விடயத்தில் மாற்றம்,news,hard,sc-draft,change in education matter
+news-007,Tamil Nadu mudhalvar pesinaar,தமிழ்நாடு முதல்வர் பேசினார்,news,medium,sc-draft,Tamil Nadu Chief Minister spoke
+news-008,vaanilai mosamaaga ulladhu,வானிலை மோசமாக உள்ளது,news,hard,sc-draft,weather is bad (formal)
+news-009,udanadi nadavadikkai eduthar,உடனடி நடவடிக்கை எடுத்தார்,news,hard,sc-draft,he took immediate action
+news-010,viswak kuthu thoongiyathu,விசுவக் கூத்து தூங்கியது,news,hard,sc-draft,viswak kuthu (cinema title) slept (review headline)
+cs-001,send the message,send the message,code_switch,easy,sc-draft,pure English passthrough
+cs-002,call panren,call பண்றேன்,code_switch,medium,sc-draft,calling (English verb + Tamil aux)
+cs-003,homework finish panniten,homework finish பண்ணிட்டேன்,code_switch,hard,sc-draft,finished homework
+cs-004,reply pannu,reply பண்ணு,code_switch,medium,sc-draft,reply (imperative)
+cs-005,WhatsApp la message anuppu,WhatsApp-ல message அனுப்பு,code_switch,hard,sc-draft,send message on WhatsApp
+cs-006,Google la search pannu,Google-ல search பண்ணு,code_switch,hard,sc-draft,search on Google
+cs-007,school bus vandhuruchu,school bus வந்துருச்சு,code_switch,medium,sc-draft,school bus came
+cs-008,laptop charge aaguthu,laptop charge ஆகுது,code_switch,hard,sc-draft,laptop is charging
+cs-009,YouTube la video paaru,YouTube-ல video பாரு,code_switch,hard,sc-draft,watch video on YouTube
+cs-010,birthday cake order pannu,birthday cake order பண்ணு,code_switch,hard,sc-draft,order birthday cake
