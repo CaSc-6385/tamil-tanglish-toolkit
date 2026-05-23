@@ -38,7 +38,7 @@ test(eval): add 50 conversation-domain golden pairs
 ```
 
 Types: `feat | fix | chore | docs | test | refactor | perf | build | ci`.
-Scope is the package or app. Body explains *why*. Footer references issue: `Refs #42`.
+Scope is the package or app. Body explains _why_. Footer references issue: `Refs #42`.
 
 ## 4. PR rules
 
@@ -54,12 +54,12 @@ Scope is the package or app. Body explains *why*. Footer references issue: `Refs
 
 ## 5. Code style
 
-| Language | Linter | Formatter | Pre-commit |
-|---|---|---|---|
-| Python | `ruff check` | `ruff format` | yes |
-| TypeScript / TSX | `eslint` + `@typescript-eslint` | `prettier` | yes |
-| Markdown | `markdownlint` | `prettier` | yes |
-| YAML | `yamllint` | `prettier` | yes |
+| Language         | Linter                          | Formatter     | Pre-commit |
+| ---------------- | ------------------------------- | ------------- | ---------- |
+| Python           | `ruff check`                    | `ruff format` | yes        |
+| TypeScript / TSX | `eslint` + `@typescript-eslint` | `prettier`    | yes        |
+| Markdown         | `markdownlint`                  | `prettier`    | yes        |
+| YAML             | `yamllint`                      | `prettier`    | yes        |
 
 - `pre-commit` hooks installed via `.pre-commit-config.yaml` (run on `git commit`).
 - CI re-runs all linters; pre-commit is just for fast local feedback.
@@ -105,6 +105,7 @@ Update when collaborators join.
 ## 10. Local development setup (to be scripted in S0)
 
 Required tools:
+
 - Node 20 + pnpm 9
 - Python 3.11 + `uv` (faster than poetry)
 - Docker (for Ollama local dev)
@@ -112,6 +113,7 @@ Required tools:
 - `gh` CLI
 
 `make bootstrap` (S0-3 deliverable):
+
 1. Installs pre-commit hooks
 2. `pnpm install` at root
 3. `uv sync` in each Python package
@@ -120,6 +122,7 @@ Required tools:
 6. Seeds local Postgres with golden eval subset
 
 `make dev` runs:
+
 - `apps/web` on :3000
 - `apps/api` on :8000
 - `ollama serve` on :11434

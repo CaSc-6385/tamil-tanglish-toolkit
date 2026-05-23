@@ -11,6 +11,7 @@
 ## Linked issues
 
 Closes #
+
 <!-- Or: Refs #N if not closing -->
 
 ## Demo

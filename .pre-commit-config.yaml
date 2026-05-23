@@ -45,12 +45,12 @@ repos:
     hooks:
       - id: markdownlint
         args: [--config, .markdownlint.json]
-        exclude: ^(docs/adr/.*\.md)$  # ADRs follow their own template
+        exclude: ^(docs/adr/.*\.md)$ # ADRs follow their own template
 
 ci:
   autofix_commit_msg: |
     chore(pre-commit): auto-fix from pre-commit hooks
 
     Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-  autoupdate_commit_msg: 'chore(pre-commit): pre-commit autoupdate'
+  autoupdate_commit_msg: "chore(pre-commit): pre-commit autoupdate"
   autoupdate_schedule: monthly

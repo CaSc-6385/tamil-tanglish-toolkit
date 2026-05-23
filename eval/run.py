@@ -70,9 +70,9 @@ class Report:
             for d, (n, m) in sorted(by_domain.items())
         )
 
-        worst = sorted(self.results, key=lambda r: jiwer.cer(r.expected, r.predicted), reverse=True)[
-            :10
-        ]
+        worst = sorted(
+            self.results, key=lambda r: jiwer.cer(r.expected, r.predicted), reverse=True
+        )[:10]
         worst_rows = "\n".join(
             f"| {r.pair_id} | {r.domain} | `{r.tanglish[:40]}` | `{r.expected[:40]}` | `{r.predicted[:40]}` |"
             for r in worst
@@ -220,8 +220,20 @@ def _builtin_sample() -> list[Pair]:
         Pair("smoke-006", "naan padikiren", "நான் படிக்கிறேன்", "school", "medium"),
         Pair("smoke-007", "rendu pasanga", "ரெண்டு பசங்க", "school", "medium"),
         Pair("smoke-008", "Modi vandhaaru", "மோடி வந்தாரு", "news", "medium"),
-        Pair("smoke-009", "send the message ku reply pannu", "send the message-கு reply பண்ணு", "code_switch", "hard"),
-        Pair("smoke-010", "homework finish panniten", "homework finish பண்ணிட்டேன்", "code_switch", "hard"),
+        Pair(
+            "smoke-009",
+            "send the message ku reply pannu",
+            "send the message-கு reply பண்ணு",
+            "code_switch",
+            "hard",
+        ),
+        Pair(
+            "smoke-010",
+            "homework finish panniten",
+            "homework finish பண்ணிட்டேன்",
+            "code_switch",
+            "hard",
+        ),
     ]
 
 

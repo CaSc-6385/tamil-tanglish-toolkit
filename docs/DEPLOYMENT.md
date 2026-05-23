@@ -4,12 +4,12 @@ Infra + release strategy for `chandralabs/tamil-edu-toolkit`. Aligned with PLAN.
 
 ## 1. Environments
 
-| Env | Purpose | Audience | Web URL | API URL | Branch |
-|---|---|---|---|---|---|
-| **local** | dev workstation | developer | `localhost:3000` | `localhost:8000` | feature branches |
-| **dev** | per-PR preview | reviewer | `<pr-N>.tamil-edu.vercel.app` | `dev.api.tamil-edu.fly.dev` | PR branch |
-| **staging** | end-to-end pre-release | internal raters | `staging.tamil-edu.vercel.app` | `staging.api.tamil-edu.fly.dev` | `main` |
-| **prod** | public release | kids, parents, teachers | `tamil.academyofsmartthinkers.com` | `api.tamil.academyofsmartthinkers.com` | tag `v*.*.*` |
+| Env         | Purpose                | Audience                | Web URL                            | API URL                                | Branch           |
+| ----------- | ---------------------- | ----------------------- | ---------------------------------- | -------------------------------------- | ---------------- |
+| **local**   | dev workstation        | developer               | `localhost:3000`                   | `localhost:8000`                       | feature branches |
+| **dev**     | per-PR preview         | reviewer                | `<pr-N>.tamil-edu.vercel.app`      | `dev.api.tamil-edu.fly.dev`            | PR branch        |
+| **staging** | end-to-end pre-release | internal raters         | `staging.tamil-edu.vercel.app`     | `staging.api.tamil-edu.fly.dev`        | `main`           |
+| **prod**    | public release         | kids, parents, teachers | `tamil.academyofsmartthinkers.com` | `api.tamil.academyofsmartthinkers.com` | tag `v*.*.*`     |
 
 - **Dev** = automatic on PR open (Vercel preview deploys); ephemeral API on Fly.io with `-dev` suffix.
 - **Staging** = auto-deploy on merge to `main`.
@@ -114,6 +114,7 @@ Infra + release strategy for `chandralabs/tamil-edu-toolkit`. Aligned with PLAN.
 ## 4. CI/CD pipelines (GitHub Actions)
 
 ### 4.1 `ci.yml` (per PR)
+
 ```
 - checkout
 - setup-pnpm + setup-python (uv)
@@ -127,13 +128,15 @@ Infra + release strategy for `chandralabs/tamil-edu-toolkit`. Aligned with PLAN.
 - eval-smoke (eval/run.py --sample 10)
 ```
 
-### 4.2 `deploy-web.yml` (push to main → staging; tag v* → prod)
+### 4.2 `deploy-web.yml` (push to main → staging; tag v\* → prod)
+
 ```
 - if event=push & ref=main → vercel pull staging && vercel deploy --prod-of staging
 - if event=tag & ref=refs/tags/v* → vercel pull prod && vercel deploy --prod
 ```
 
 ### 4.3 `deploy-api.yml` (same trigger split)
+
 ```
 - docker build
 - docker push to fly registry
@@ -141,6 +144,7 @@ Infra + release strategy for `chandralabs/tamil-edu-toolkit`. Aligned with PLAN.
 ```
 
 ### 4.4 `eval-nightly.yml` (cron 03:00 UTC)
+
 ```
 - run eval/run.py against the full v1 golden set
 - commit report to eval/reports/
@@ -148,6 +152,7 @@ Infra + release strategy for `chandralabs/tamil-edu-toolkit`. Aligned with PLAN.
 ```
 
 ### 4.5 `cost-monthly.yml` (cron 1st of month 06:00 UTC)
+
 ```
 - query OpenAI usage API, Hetzner billing, Vercel/Fly usage
 - emit eval/reports/cost-YYYY-MM.md
@@ -176,26 +181,26 @@ Per sprint (every 2 weeks):
 
 ## 6. Rollback strategy
 
-| Layer | Rollback path | RTO |
-|---|---|---|
-| Web | `vercel rollback <deployment-id>` (or revert tag + redeploy) | < 5 min |
-| API | `fly releases list` → `fly deploy --image <prev>` | < 10 min |
-| DB schema | `alembic downgrade -1` (only if migration is reversible — that's a PR rule) | < 5 min |
-| Ollama model | Keep last 2 model tags; `systemctl restart ollama` with prev | < 15 min |
-| Mobile JS | Expo OTA: publish previous release branch | < 10 min |
-| Mobile native | Store rollback not possible — fix forward via emergency build | ~24h |
+| Layer         | Rollback path                                                               | RTO      |
+| ------------- | --------------------------------------------------------------------------- | -------- |
+| Web           | `vercel rollback <deployment-id>` (or revert tag + redeploy)                | < 5 min  |
+| API           | `fly releases list` → `fly deploy --image <prev>`                           | < 10 min |
+| DB schema     | `alembic downgrade -1` (only if migration is reversible — that's a PR rule) | < 5 min  |
+| Ollama model  | Keep last 2 model tags; `systemctl restart ollama` with prev                | < 15 min |
+| Mobile JS     | Expo OTA: publish previous release branch                                   | < 10 min |
+| Mobile native | Store rollback not possible — fix forward via emergency build               | ~24h     |
 
 ## 7. Monitoring & alerts
 
-| Tool | What | Alert threshold |
-|---|---|---|
-| **Sentry** (free) | Errors, perf | New issue spike → email |
-| **PostHog** (free) | Funnels, event success rate | Drop > 10% day/day → email |
-| **Better Stack** (free tier) | Uptime checks: web, api, ollama | Down 2 min → email |
-| **Hetzner billing** | Server cost | Alert at €15 month-to-date (over baseline) |
-| **OpenAI usage** | API cost | Hard cap $15 in code; alert at $10 |
-| **Vercel** | Build minutes, bandwidth | Alert at 80% of free tier |
-| **Fly.io** | VM hours, bandwidth | Alert at 80% of free tier |
+| Tool                         | What                            | Alert threshold                            |
+| ---------------------------- | ------------------------------- | ------------------------------------------ |
+| **Sentry** (free)            | Errors, perf                    | New issue spike → email                    |
+| **PostHog** (free)           | Funnels, event success rate     | Drop > 10% day/day → email                 |
+| **Better Stack** (free tier) | Uptime checks: web, api, ollama | Down 2 min → email                         |
+| **Hetzner billing**          | Server cost                     | Alert at €15 month-to-date (over baseline) |
+| **OpenAI usage**             | API cost                        | Hard cap $15 in code; alert at $10         |
+| **Vercel**                   | Build minutes, bandwidth        | Alert at 80% of free tier                  |
+| **Fly.io**                   | VM hours, bandwidth             | Alert at 80% of free tier                  |
 
 All alerts to `academyofsmartthinkers@gmail.com` (existing channel) and `schandra@ieee.org`.
 
@@ -219,20 +224,20 @@ All alerts to `academyofsmartthinkers@gmail.com` (existing channel) and `schandr
 
 ## 10. Cost ledger (live, updated monthly in `eval/reports/cost-YYYY-MM.md`)
 
-| Service | Plan | $/mo | Hard cap |
-|---|---|---|---|
-| Vercel | Hobby | $0 | — |
-| Fly.io | Free 3 VMs | $0 | — |
-| Hetzner CX32 | dedicated Ollama | ~$5.40 | $8 (upgrade trigger) |
-| Hetzner backups | weekly snapshot | ~$0.55 | $1 |
-| Supabase | Free | $0 | — |
-| Cloudflare R2 | Free 10GB | $0 | — |
-| OpenAI GPT-4o-mini | pay-as-you-go | ~$5–10 | **$15 (enforced)** |
-| Apple Developer | annual | ~$8 | $9 |
-| Sentry | Free | $0 | — |
-| PostHog | Free 1M events | $0 | — |
-| Better Stack | Free | $0 | — |
-| **Expected total** | | **~$19–24** | |
-| **Hard cap** | | | **$50** |
+| Service            | Plan             | $/mo        | Hard cap             |
+| ------------------ | ---------------- | ----------- | -------------------- |
+| Vercel             | Hobby            | $0          | —                    |
+| Fly.io             | Free 3 VMs       | $0          | —                    |
+| Hetzner CX32       | dedicated Ollama | ~$5.40      | $8 (upgrade trigger) |
+| Hetzner backups    | weekly snapshot  | ~$0.55      | $1                   |
+| Supabase           | Free             | $0          | —                    |
+| Cloudflare R2      | Free 10GB        | $0          | —                    |
+| OpenAI GPT-4o-mini | pay-as-you-go    | ~$5–10      | **$15 (enforced)**   |
+| Apple Developer    | annual           | ~$8         | $9                   |
+| Sentry             | Free             | $0          | —                    |
+| PostHog            | Free 1M events   | $0          | —                    |
+| Better Stack       | Free             | $0          | —                    |
+| **Expected total** |                  | **~$19–24** |                      |
+| **Hard cap**       |                  |             | **$50**              |
 
 If any month's cost exceeds $35 — open a P1 issue, write a post-mortem, adjust before next sprint.

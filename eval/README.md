@@ -30,26 +30,26 @@ Then: `uv run python -m eval.run --model my-model`.
 
 ## Golden set schema (`data/golden/v1.csv`)
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | string | Stable identifier, e.g. `conv-042` |
-| `tanglish` | string | Input |
-| `expected_tamil` | string | Tamil Unicode target |
-| `domain` | enum | `conversation` / `names` / `school` / `news` / `code_switch` |
-| `difficulty` | enum | `easy` / `medium` / `hard` |
-| `reviewer` | string | Initials of native-speaker reviewer |
-| `notes` | string | Free text |
+| Column           | Type   | Notes                                                        |
+| ---------------- | ------ | ------------------------------------------------------------ |
+| `id`             | string | Stable identifier, e.g. `conv-042`                           |
+| `tanglish`       | string | Input                                                        |
+| `expected_tamil` | string | Tamil Unicode target                                         |
+| `domain`         | enum   | `conversation` / `names` / `school` / `news` / `code_switch` |
+| `difficulty`     | enum   | `easy` / `medium` / `hard`                                   |
+| `reviewer`       | string | Initials of native-speaker reviewer                          |
+| `notes`          | string | Free text                                                    |
 
 See `docs/TESTING.md` §4.1 for composition rules.
 
 ## Metrics
 
-| Metric | Formula | Lower/Higher = better |
-|---|---|---|
-| **CER** | jiwer character error rate | lower |
-| **WER** | jiwer word error rate | lower |
-| **BLEU-4** | sacrebleu corpus BLEU | higher |
-| **chrF** | sacrebleu character-F | higher |
-| **Exact match** | strict string equality after `strip()` | higher |
+| Metric          | Formula                                | Lower/Higher = better |
+| --------------- | -------------------------------------- | --------------------- |
+| **CER**         | jiwer character error rate             | lower                 |
+| **WER**         | jiwer word error rate                  | lower                 |
+| **BLEU-4**      | sacrebleu corpus BLEU                  | higher                |
+| **chrF**        | sacrebleu character-F                  | higher                |
+| **Exact match** | strict string equality after `strip()` | higher                |
 
 Targets per sprint in `docs/TESTING.md` §4.2.

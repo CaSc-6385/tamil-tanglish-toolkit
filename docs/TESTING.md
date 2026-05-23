@@ -22,17 +22,17 @@ Pre-release: E2E + load + accessibility.
 
 ## 2. Frameworks
 
-| Layer | Framework | Location |
-|---|---|---|
-| Python unit | `pytest` + `pytest-cov` | each `packages/<x>/tests/` |
-| Python integration | `pytest-asyncio` + `httpx.AsyncClient` | `apps/api/tests/integration/` |
-| TS unit | `vitest` | each `apps/<x>/__tests__/` |
-| React component | `@testing-library/react` | colocated with components |
-| Web E2E | `playwright` | `apps/web/e2e/` |
-| Mobile E2E (S4) | `maestro` (lighter than Detox) | `apps/mobile/e2e/` |
-| ML eval | custom harness `eval/run.py` using `jiwer`, `sacrebleu`, native-rater queue | `eval/` |
-| Accessibility | `axe-core` via Playwright | `apps/web/e2e/a11y.spec.ts` |
-| Load (pre-release) | `k6` | `infra/load/` |
+| Layer              | Framework                                                                   | Location                      |
+| ------------------ | --------------------------------------------------------------------------- | ----------------------------- |
+| Python unit        | `pytest` + `pytest-cov`                                                     | each `packages/<x>/tests/`    |
+| Python integration | `pytest-asyncio` + `httpx.AsyncClient`                                      | `apps/api/tests/integration/` |
+| TS unit            | `vitest`                                                                    | each `apps/<x>/__tests__/`    |
+| React component    | `@testing-library/react`                                                    | colocated with components     |
+| Web E2E            | `playwright`                                                                | `apps/web/e2e/`               |
+| Mobile E2E (S4)    | `maestro` (lighter than Detox)                                              | `apps/mobile/e2e/`            |
+| ML eval            | custom harness `eval/run.py` using `jiwer`, `sacrebleu`, native-rater queue | `eval/`                       |
+| Accessibility      | `axe-core` via Playwright                                                   | `apps/web/e2e/a11y.spec.ts`   |
+| Load (pre-release) | `k6`                                                                        | `infra/load/`                 |
 
 ## 3. Coverage gates
 
@@ -58,25 +58,25 @@ Each row: `id, tanglish, expected_tamil, domain, difficulty, reviewer, notes`. C
 
 ### 4.2 Quantitative metrics
 
-| Metric | Tool | Target (V1) |
-|---|---|---|
-| **CER** (Character Error Rate) | `jiwer.cer` | ≤ 12% S1; ≤ 7% S2 |
-| **WER** (Word Error Rate) | `jiwer.wer` | ≤ 25% S1; ≤ 18% S2 |
-| **BLEU-4** | `sacrebleu` | ≥ 60 S1; ≥ 72 S2 |
-| **chrF** | `sacrebleu` | ≥ 75 S1; ≥ 82 S2 |
-| **Per-domain breakdown** | custom | published in every report |
+| Metric                         | Tool        | Target (V1)               |
+| ------------------------------ | ----------- | ------------------------- |
+| **CER** (Character Error Rate) | `jiwer.cer` | ≤ 12% S1; ≤ 7% S2         |
+| **WER** (Word Error Rate)      | `jiwer.wer` | ≤ 25% S1; ≤ 18% S2        |
+| **BLEU-4**                     | `sacrebleu` | ≥ 60 S1; ≥ 72 S2          |
+| **chrF**                       | `sacrebleu` | ≥ 75 S1; ≥ 82 S2          |
+| **Per-domain breakdown**       | custom      | published in every report |
 
 ### 4.3 Qualitative: native-speaker rubric
 
 Sprints 2+ add native-speaker rating on a 100-sample stratified slice per release:
 
-| Score | Meaning |
-|---|---|
-| 5 | Perfect — would write exactly this |
-| 4 | Correct but stylistically odd |
-| 3 | Comprehensible but has minor errors |
-| 2 | Significant errors but core meaning preserved |
-| 1 | Wrong or unintelligible |
+| Score | Meaning                                       |
+| ----- | --------------------------------------------- |
+| 5     | Perfect — would write exactly this            |
+| 4     | Correct but stylistically odd                 |
+| 3     | Comprehensible but has minor errors           |
+| 2     | Significant errors but core meaning preserved |
+| 1     | Wrong or unintelligible                       |
 
 **Pre-release gate**: ≥ 80% of samples rated ≥ 4.
 Raters: you + 2 reviewers (recruit via Tamil-school network). Compensate or thank-by-name.
@@ -93,24 +93,25 @@ Output: `eval/reports/YYYY-MM-DD-<model>-<set>.md` with metrics, top-N errors, c
 
 ## 5. Pre-merge gates (per sprint)
 
-| Gate | S0 | S1 | S2 | S3 | S4 | S5 | S6 |
-|---|---|---|---|---|---|---|---|
-| Lint green | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Unit tests pass | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Coverage ≥ 80% new code | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Build green (web + api) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Integration tests | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Eval-smoke (10 pairs) | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Web E2E (Playwright) | – | – | – | ✓ | ✓ | ✓ | ✓ |
-| Mobile E2E (Maestro) | – | – | – | – | ✓ | ✓ | ✓ |
-| A11y axe scan | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Lighthouse perf ≥ 80 | – | – | ✓ | ✓ | – | ✓ | ✓ |
-| Native-rater ≥ 4/5 on 80% | – | – | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Load test (k6, 50 RPS) | – | – | – | – | – | – | ✓ |
+| Gate                      | S0  | S1  | S2  | S3  | S4  | S5  | S6  |
+| ------------------------- | --- | --- | --- | --- | --- | --- | --- |
+| Lint green                | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   |
+| Unit tests pass           | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   |
+| Coverage ≥ 80% new code   | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   |
+| Build green (web + api)   | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   |
+| Integration tests         | –   | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   |
+| Eval-smoke (10 pairs)     | –   | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   |
+| Web E2E (Playwright)      | –   | –   | –   | ✓   | ✓   | ✓   | ✓   |
+| Mobile E2E (Maestro)      | –   | –   | –   | –   | ✓   | ✓   | ✓   |
+| A11y axe scan             | –   | ✓   | ✓   | ✓   | ✓   | ✓   | ✓   |
+| Lighthouse perf ≥ 80      | –   | –   | ✓   | ✓   | –   | ✓   | ✓   |
+| Native-rater ≥ 4/5 on 80% | –   | –   | ✓   | ✓   | ✓   | ✓   | ✓   |
+| Load test (k6, 50 RPS)    | –   | –   | –   | –   | –   | –   | ✓   |
 
 ## 6. Sprint exit gates (release-readiness)
 
 Run at end of each sprint before tagging:
+
 - All PRs in milestone merged
 - Nightly eval ran successfully ≥ 3 of last 5 nights
 - No P0/P1 bugs open
@@ -120,12 +121,12 @@ Run at end of each sprint before tagging:
 
 ## 7. Bug triage SLA
 
-| Severity | Definition | Response |
-|---|---|---|
-| **P0** | Prod down, data loss, security incident | Immediate; drop everything |
-| **P1** | Core feature broken for a major use case | Within 1 day |
-| **P2** | Workaround exists, not blocking demo | Within sprint |
-| **P3** | Cosmetic, edge-case, nice-to-have | Backlog |
+| Severity | Definition                               | Response                   |
+| -------- | ---------------------------------------- | -------------------------- |
+| **P0**   | Prod down, data loss, security incident  | Immediate; drop everything |
+| **P1**   | Core feature broken for a major use case | Within 1 day               |
+| **P2**   | Workaround exists, not blocking demo     | Within sprint              |
+| **P3**   | Cosmetic, edge-case, nice-to-have        | Backlog                    |
 
 Track via GitHub Issues with `bug` + severity label. Auto-assign P0/P1 to self.
 
@@ -139,6 +140,7 @@ Track via GitHub Issues with `bug` + severity label. Auto-assign P0/P1 to self.
 ## 9. Manual testing (the parts CI can't automate)
 
 Per release:
+
 - 5 kid-perspective walk-throughs (mascot reactions, audio, streak feel)
 - Cross-browser smoke (Chrome, Safari, Firefox, Mobile Safari, Chrome Android)
 - Dark mode visual diff

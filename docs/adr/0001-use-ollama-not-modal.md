@@ -17,6 +17,7 @@ Two viable serving options were considered:
 2. **Ollama on a CPU VPS** — runs the quantized GGUF Q4_K_M variant (~4 GB) at 5–10 tokens/sec on a 4 vCPU box. Hetzner CX32 is €4.99/mo (~$5.40 USD).
 
 GPT-4o-mini was considered as an alternative primary corrector but rejected as the sole option because:
+
 - The Tamil-LLaMA model already exists, is fine-tuned for Tamil, and is the user's own prior work — abandoning it would waste demonstrable benchmarks already published in [chandralabs/Tamil-Research-LLM](https://github.com/chandralabs/Tamil-Research-LLM).
 - The "Tamil-LLaMA powered" narrative is part of the AOST research story; outsourcing entirely to OpenAI weakens the differentiator.
 
@@ -24,7 +25,8 @@ GPT-4o-mini was considered as an alternative primary corrector but rejected as t
 
 **Serve `chandralabs/tamil-llama` 7B (Q4_K_M GGUF) via Ollama on a Hetzner CX32 (4 vCPU AMD, 8 GB RAM, Frankfurt region) as the primary grammar-correction backend.**
 
-GPT-4o-mini is a *fallback*, gated on:
+GPT-4o-mini is a _fallback_, gated on:
+
 - Ollama p95 latency > 3 seconds for the request, OR
 - Ollama queue depth > 5 concurrent requests, OR
 - Ollama health-check failure
@@ -57,11 +59,11 @@ Fallback is also hard-budget-capped at $15/month in code (`OPENAI_MONTHLY_BUDGET
 
 ## Alternatives considered
 
-| Option | Cost/mo | Latency | Why rejected |
-|---|---|---|---|
-| Modal A10G on-demand | ~$90 | < 1s | Blows the $50 budget by itself |
-| Replicate cold-start endpoint | ~$0.0001/sec → ~$30 at moderate use | 2–5s with cold-start | Variable cost hard to bound; cold-start UX bad |
-| Together.ai serverless | ~$0.20/1M tokens → ~$5 | < 1s | Locks in third-party; loses "Tamil-LLaMA powered" narrative |
-| Self-host on RunPod GPU | ~$30 (spot) | < 1s | Spot interruptions; ops complexity higher than Hetzner |
-| GPT-4o-mini only | ~$10 | < 1s | Abandons user's own Tamil-LLaMA work; weakens narrative |
-| Local-only (user's machine) | $0 | n/a | Not usable as a hosted service for kids/parents |
+| Option                        | Cost/mo                             | Latency              | Why rejected                                                |
+| ----------------------------- | ----------------------------------- | -------------------- | ----------------------------------------------------------- |
+| Modal A10G on-demand          | ~$90                                | < 1s                 | Blows the $50 budget by itself                              |
+| Replicate cold-start endpoint | ~$0.0001/sec → ~$30 at moderate use | 2–5s with cold-start | Variable cost hard to bound; cold-start UX bad              |
+| Together.ai serverless        | ~$0.20/1M tokens → ~$5              | < 1s                 | Locks in third-party; loses "Tamil-LLaMA powered" narrative |
+| Self-host on RunPod GPU       | ~$30 (spot)                         | < 1s                 | Spot interruptions; ops complexity higher than Hetzner      |
+| GPT-4o-mini only              | ~$10                                | < 1s                 | Abandons user's own Tamil-LLaMA work; weakens narrative     |
+| Local-only (user's machine)   | $0                                  | n/a                  | Not usable as a hosted service for kids/parents             |

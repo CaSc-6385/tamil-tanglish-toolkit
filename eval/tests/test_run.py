@@ -99,8 +99,10 @@ def test_result_exact_match() -> None:
 
 
 def test_pair_is_frozen_dataclass() -> None:
+    from dataclasses import FrozenInstanceError
+
     p = Pair("t-1", "hi", "வணக்கம்", "conversation", "easy")
-    with pytest.raises(Exception):  # FrozenInstanceError subclass of Exception
+    with pytest.raises(FrozenInstanceError):
         p.tanglish = "changed"  # type: ignore[misc]
 
 

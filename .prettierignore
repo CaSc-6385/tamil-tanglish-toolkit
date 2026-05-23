@@ -1,0 +1,46 @@
+# Generated files
+pnpm-lock.yaml
+uv.lock
+package-lock.json
+yarn.lock
+
+# Secrets baseline (auto-generated structure)
+.secrets.baseline
+
+# Build outputs
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+
+# Python
+__pycache__/
+.venv/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+coverage.xml
+.coverage
+
+# ADRs follow their own template
+docs/adr/
+
+# Eval reports (auto-generated)
+eval/reports/
+
+# Mobile
+.expo/
+ios/Pods/
+android/.gradle/
+android/build/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
