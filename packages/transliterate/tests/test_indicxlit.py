@@ -15,7 +15,12 @@ import pytest
 from tamil_edu_transliterate import IndicXlitTransliterator, TransliterationError
 from tamil_edu_transliterate.indicxlit import _TOKEN_RE
 
-HAS_AI4BHARAT = importlib.util.find_spec("ai4bharat.transliteration") is not None
+try:
+    HAS_AI4BHARAT = importlib.util.find_spec("ai4bharat.transliteration") is not None
+except ModuleNotFoundError:
+    # find_spec raises (rather than returning None) when the PARENT package
+    # is missing — guard so importing this test module works without the extra.
+    HAS_AI4BHARAT = False
 
 requires_indicxlit = pytest.mark.skipif(
     not HAS_AI4BHARAT,
