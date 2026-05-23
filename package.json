@@ -11,8 +11,8 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
-    "lint": "pnpm -r --if-present lint && prettier --check \"**/*.{md,yml,yaml,json}\" --ignore-path .gitignore",
-    "format": "prettier --write \"**/*.{md,yml,yaml,json}\" --ignore-path .gitignore && pnpm -r --if-present format",
+    "lint": "pnpm -r --if-present lint && prettier --check \"**/*.{md,yml,yaml,json}\"",
+    "format": "prettier --write \"**/*.{md,yml,yaml,json}\" && pnpm -r --if-present format",
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",
     "typecheck": "pnpm -r --if-present typecheck"

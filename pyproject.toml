@@ -12,13 +12,20 @@ dev = [
     "pytest>=8.3",
     "pytest-cov>=5.0",
     "pre-commit>=3.8",
+    # Eval harness deps (jiwer/sacrebleu also live in eval/pyproject.toml; duplicated here
+    # so `uv sync --all-extras` at the root installs them for pytest in CI).
+    "jiwer>=3.0.4",
+    "sacrebleu>=2.4.3",
 ]
 
 [tool.uv]
 package = false
 
 [tool.uv.workspace]
-members = ["apps/api", "packages/transliterate", "packages/grammar", "packages/ocr", "packages/pylib", "eval"]
+# Only directories with a real, buildable pyproject.toml.
+# eval/ is a flat script dir (no pyproject) — its deps live in the root [dev] extras.
+# packages/{grammar,ocr,pylib,api} will be added as they get scaffolded in S1+.
+members = ["packages/transliterate"]
 exclude = []
 
 [tool.ruff]
