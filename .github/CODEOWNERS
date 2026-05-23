@@ -1,0 +1,39 @@
+# CODEOWNERS for tamil-edu-toolkit
+# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# Aligned with docs/DEVELOPMENT.md §9.
+#
+# Update when collaborators join.
+
+# Default owner — every file unless overridden below
+*                           @chandralabs
+
+# Frontend
+/apps/web/                  @chandralabs
+/apps/mobile/               @chandralabs
+/apps/extension/            @chandralabs
+
+# Backend
+/apps/api/                  @chandralabs
+
+# ML / serving — extra-care surface (model + grammar correction)
+/packages/grammar/          @chandralabs
+/packages/transliterate/    @chandralabs
+/packages/ocr/              @chandralabs
+
+# Shared
+/packages/ui/               @chandralabs
+/packages/sdk-ts/           @chandralabs
+/packages/pylib/            @chandralabs
+
+# Eval — changes affect benchmark continuity, review carefully
+/data/golden/               @chandralabs
+/eval/                      @chandralabs
+
+# Infra — cost-impacting changes, extra review
+/infra/                     @chandralabs
+/.github/workflows/         @chandralabs
+
+# Plan-of-record docs — frozen v3, changes require explicit version bump (see docs/PLAN.md §12)
+/docs/PLAN.md               @chandralabs
+/docs/SPRINTS.md            @chandralabs
+/docs/adr/                  @chandralabs
