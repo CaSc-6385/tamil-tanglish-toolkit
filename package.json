@@ -7,8 +7,7 @@
   "license": "MIT",
   "packageManager": "pnpm@9.12.0",
   "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=9.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "dev": "concurrently -n api,web -c blue,green --kill-others-on-fail \"pnpm dev:api\" \"pnpm dev:web\"",
