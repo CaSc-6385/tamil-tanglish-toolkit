@@ -28,6 +28,26 @@ MODELS["my-model"] = MyModel
 
 Then: `uv run python -m eval.run --model my-model`.
 
+## Running the real IndicXlit model
+
+The `indicxlit` model is registered but requires the optional `ai4bharat-transliteration`
+package. Two ways to use it:
+
+**Locally on Linux or Python 3.11 (Windows Python 3.13 is broken — fairseq build fails):**
+
+```bash
+uv add --package tamil-edu-transliterate "ai4bharat-transliteration>=1.1.3"
+uv run python -m eval.run --model indicxlit --set v1
+```
+
+First call downloads ~1GB model, cached after that.
+
+**In CI (recommended):** the `.github/workflows/eval-real.yml` workflow runs this
+automatically on a weekly schedule (Sundays 03:00 UTC), on any push to `main` that
+touches eval/data/transliterate code, and on manual trigger. Reports are committed
+back to `eval/reports/`. The S1-1 acceptance gate (CER ≤ 0.15) is enforced — workflow
+fails if quality regresses below threshold.
+
 ## Golden set schema (`data/golden/v1.csv`)
 
 | Column           | Type   | Notes                                                        |

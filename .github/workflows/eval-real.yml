@@ -1,0 +1,77 @@
+name: Eval (real IndicXlit model)
+
+# Runs the eval harness against the actual ai4bharat IndicXlit Tamil model.
+# Slow (~5 min for install + model download) and expensive in CI minutes —
+# so it runs only on demand or weekly, not on every push.
+#
+# Trigger:
+#   - Manually via the Actions tab → "Eval (real IndicXlit model)" → Run workflow
+#   - Weekly via cron (Sunday 03:00 UTC) to catch model/data regressions
+#   - When eval/, data/golden/, or packages/transliterate/ change on main
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 0" # Sundays at 03:00 UTC
+  push:
+    branches: [main]
+    paths:
+      - "eval/**"
+      - "data/golden/**"
+      - "packages/transliterate/**"
+      - ".github/workflows/eval-real.yml"
+
+permissions:
+  contents: write # commit the report back to eval/reports/
+
+jobs:
+  eval:
+    name: Eval IndicXlit on golden v1
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.30"
+          cache-dependency-glob: "**/pyproject.toml"
+
+      - name: Use Python 3.11 (ai4bharat-transliteration needs <3.13)
+        run: uv python install 3.11
+
+      - name: Install workspace + indicxlit extra
+        run: |
+          uv sync --all-extras
+          uv pip install --python .venv/bin/python "ai4bharat-transliteration>=1.1.3"
+
+      - name: Run eval (full golden v1)
+        id: eval
+        run: |
+          uv run python -m eval.run --model indicxlit --set v1 --json --no-report > /tmp/eval.json
+          cat /tmp/eval.json
+          echo "cer=$(python -c 'import json,sys; print(json.load(open("/tmp/eval.json"))["cer"])')" >> $GITHUB_OUTPUT
+
+      - name: Run eval (full) with markdown report
+        run: uv run python -m eval.run --model indicxlit --set v1
+
+      - name: "Gate — CER must be at most 0.15 (S1-1 acceptance)"
+        run: |
+          CER=$(python -c 'import json; print(json.load(open("/tmp/eval.json"))["cer"])')
+          THRESHOLD=0.15
+          echo "CER = $CER (gate ≤ $THRESHOLD)"
+          python -c "import sys; sys.exit(0 if float('$CER') <= float('$THRESHOLD') else 1)"
+
+      - name: Commit eval report (only on push to main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add eval/reports/
+          if git diff --cached --quiet; then
+            echo "No new report to commit"
+          else
+            git commit -m "chore(eval): nightly IndicXlit report (CER=${{ steps.eval.outputs.cer }})"
+            git push
+          fi

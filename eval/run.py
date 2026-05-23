@@ -181,8 +181,32 @@ class BaselineModel:
         return tanglish
 
 
+class IndicXlitModel:
+    """Real IndicXlit Tamil model. Requires the `[indicxlit]` extra installed
+    in the transliterate package. Slow to first-run (~1GB model load).
+
+    Run:
+        uv add --package tamil-edu-transliterate "ai4bharat-transliteration>=1.1.3"
+        uv run python -m eval.run --model indicxlit --set v1
+
+    Note (Windows + Python 3.13): ai4bharat-transliteration pulls fairseq
+    which has no wheel for Py 3.13. Use Python 3.11 OR run in Linux (CI does).
+    """
+
+    name = "indicxlit"
+
+    def __init__(self) -> None:
+        from tamil_edu_transliterate import IndicXlitTransliterator
+
+        self._impl = IndicXlitTransliterator()
+
+    def predict(self, tanglish: str) -> str:
+        return self._impl.transliterate(tanglish)
+
+
 MODELS: dict[str, Callable[[], Model]] = {
     "baseline": BaselineModel,
+    "indicxlit": IndicXlitModel,
 }
 
 
