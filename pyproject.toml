@@ -68,6 +68,12 @@ minversion = "8.0"
 testpaths = ["apps", "packages", "eval"]
 python_files = ["test_*.py", "*_test.py"]
 addopts = ["-ra", "--strict-markers"]
+# Put repo root on sys.path so `from eval.run import ...` works
+# (eval/ is a flat package with __init__.py, not pip-installed).
+pythonpath = ["."]
+# Use importlib mode so tests/ directories don't need __init__.py and there are
+# no collisions between same-named test files across packages.
+asyncio_mode = "auto"
 
 [tool.coverage.run]
 branch = true
