@@ -18,6 +18,11 @@ aksharamukha = [
     # Substitute for IndicXlit while it's blocked. Default backend in production.
     "aksharamukha>=2.2",
 ]
+openai = [
+    # GPT-4o-mini for highest-quality transliteration (handles Tanglish naturally).
+    # Requires OPENAI_API_KEY env var. ~$0.0001 per typical request.
+    "openai>=1.50.0",
+]
 dev = [
     "pytest>=8.3",
     "pytest-cov>=5.0",

@@ -29,7 +29,7 @@ from tamil_edu_api.models import (
     WordOut,
 )
 
-_VALID_BACKENDS = frozenset({"baseline", "aksharamukha", "indicxlit"})
+_VALID_BACKENDS = frozenset({"baseline", "aksharamukha", "openai-gpt", "indicxlit"})
 
 
 def get_backend() -> str:

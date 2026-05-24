@@ -49,12 +49,19 @@ class AksharamukhaTransliterator:
         self._fn = transliterate.process
         return self._fn
 
+    # Aksharamukha uses superscript digits to mark Grantha-style aspirated
+    # consonants. These don't belong in modern conversational Tamil — strip them
+    # for cleaner output. (Quality of the underlying transliteration is still
+    # rule-based limited; see docs/adr/0002.)
+    _GRANTHA_MARKS = str.maketrans("", "", "¹²³⁴⁵⁶⁷⁸⁹⁰")
+
     def _translit_word(self, word: str) -> str:
         fn = self._ensure_fn()
         try:
-            return fn(self._scheme, "Tamil", word)
+            raw = fn(self._scheme, "Tamil", word)
         except Exception as exc:
             raise TransliterationError(f"Aksharamukha failed on token '{word}': {exc}") from exc
+        return raw.translate(self._GRANTHA_MARKS)
 
     def transliterate(self, text: str, *, topk: int = 1) -> str:
         if not text:

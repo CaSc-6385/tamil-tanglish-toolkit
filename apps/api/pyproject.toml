@@ -8,9 +8,10 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.31.0",
     "pydantic>=2.9",
-    # Production needs the aksharamukha extra so real Tamil works out of the box.
+    # Production includes aksharamukha (free rule-based) + openai (paid, high quality).
     # IndicXlit extra omitted — currently blocked (ADR-0002).
-    "tamil-edu-transliterate[aksharamukha]",
+    # Pick backend at runtime via TRANSLITERATE_BACKEND env var.
+    "tamil-edu-transliterate[aksharamukha,openai]",
 ]
 
 [project.optional-dependencies]

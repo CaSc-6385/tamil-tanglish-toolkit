@@ -6,12 +6,14 @@ from tamil_edu_transliterate.aksharamukha import AksharamukhaTransliterator
 from tamil_edu_transliterate.base import TransliterationError, Transliterator, Word
 from tamil_edu_transliterate.baseline import BaselineTransliterator
 from tamil_edu_transliterate.indicxlit import IndicXlitTransliterator
+from tamil_edu_transliterate.openai_gpt import OpenAiGptTransliterator
 from tamil_edu_transliterate.tokenizer import Token, TokenKind, tokenize
 
 __all__ = [
     "AksharamukhaTransliterator",
     "BaselineTransliterator",
     "IndicXlitTransliterator",
+    "OpenAiGptTransliterator",
     "Token",
     "TokenKind",
     "TransliterationError",
@@ -33,9 +35,12 @@ def _get(backend: str) -> Transliterator:
             _BACKENDS[backend] = AksharamukhaTransliterator()
         elif backend == "indicxlit":
             _BACKENDS[backend] = IndicXlitTransliterator()
+        elif backend in ("openai-gpt", "openai_gpt", "openai"):
+            _BACKENDS[backend] = OpenAiGptTransliterator()
         else:
             raise ValueError(
-                f"Unknown backend '{backend}'. Available: baseline, aksharamukha, indicxlit"
+                f"Unknown backend '{backend}'. "
+                "Available: baseline, aksharamukha, openai-gpt, indicxlit"
             )
     return _BACKENDS[backend]
 
