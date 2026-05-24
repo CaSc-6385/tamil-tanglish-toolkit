@@ -50,6 +50,14 @@ def _allowed_origins() -> list[str]:
     ]
 
 
+def _allowed_origin_regex() -> str | None:
+    """Optional regex pattern matched against the Origin header. Useful for
+    Vercel preview/branch deploys whose URLs include random hashes.
+    """
+    value = os.environ.get("CORS_ORIGIN_REGEX", "").strip()
+    return value or None
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Validate backend choice at boot — fail fast on misconfig."""
@@ -71,6 +79,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins(),
+    allow_origin_regex=_allowed_origin_regex(),
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],

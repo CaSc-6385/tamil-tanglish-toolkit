@@ -10,7 +10,10 @@ primary_region = "iad"  # US East
 
 [env]
   TRANSLITERATE_BACKEND = "aksharamukha"
-  CORS_ORIGINS = "https://tamil-edu-web.vercel.app,https://tamil.academyofsmartthinkers.com"
+  # Exact-match production + custom-domain origins
+  CORS_ORIGINS = "https://tamil-edu-toolkit.vercel.app,https://tamil.academyofsmartthinkers.com"
+  # Regex covers Vercel preview/branch deploys (random hash + chandra-s-tamil-projects1 suffix)
+  CORS_ORIGIN_REGEX = "^https://tamil-edu-toolkit(-[a-z0-9-]+)?\\.vercel\\.app$"
 
 [http_service]
   internal_port = 8000
