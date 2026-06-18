@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { translate, type TranslateResponse, type Word } from "@/lib/api";
+import { ocr, translate, type TranslateResponse, type Word } from "@/lib/api";
 import { capture, initPostHog } from "@/lib/posthog";
 import { useHistory } from "@/lib/use-history";
 
@@ -22,6 +22,10 @@ export default function HomePage() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // OCR (image → text) state
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrNote, setOcrNote] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const { history, add: addHistory, remove: removeHistory, clear: clearHistory } = useHistory();
 
@@ -72,6 +76,46 @@ export default function HomePage() {
   async function onCopy() {
     if (!result) return;
     await navigator.clipboard.writeText(currentTamil());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  // Read text from an uploaded image (printed Tamil / Tanglish) and drop it into
+  // the input so the user can review before translating.
+  async function onImageSelected(file: File | null | undefined) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setOcrNote("Please choose an image file.");
+      return;
+    }
+    setOcrLoading(true);
+    setOcrNote(null);
+    setError(null);
+    const tStart = performance.now();
+    capture("ocr.requested", { file_size: file.size, file_type: file.type });
+    try {
+      const res = await ocr(file);
+      const extracted = res.text.trim();
+      if (!extracted) {
+        setOcrNote("No readable text found in that image.");
+      } else {
+        setInput((prev) => (prev.trim() ? `${prev.trim()} ${extracted}` : extracted));
+        setOcrNote(
+          `Extracted ${res.lines.length} line(s) · ${Math.round(res.avg_confidence * 100)}% confidence`,
+        );
+      }
+      capture("ocr.succeeded", {
+        extracted_length: extracted.length,
+        file_size: file.size,
+        duration_ms: Math.round(performance.now() - tStart),
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not read that image";
+      setOcrNote(msg);
+      capture("ocr.error", { message_class: msg.slice(0, 80), file_size: file.size });
+    } finally {
+      setOcrLoading(false);
+    }
   }
 
   function loadFromHistory(tanglish: string) {
@@ -106,6 +150,7 @@ export default function HomePage() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="e.g. vanakkam nanba"
           rows={3}
+          maxLength={2000}
           className="w-full rounded-2xl border-2 border-aost-300 bg-white px-4 py-3 text-kid placeholder:text-aost-400 focus:border-aost-500"
           aria-describedby="tanglish-help"
         />
@@ -135,9 +180,46 @@ export default function HomePage() {
         </button>
       </form>
 
+      <section aria-labelledby="ocr-heading" className="mb-6">
+        <h2 id="ocr-heading" className="mb-2 text-base font-medium text-aost-900">
+          Or read text from an image
+        </h2>
+        <label
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            onImageSelected(e.dataTransfer.files?.[0]);
+          }}
+          className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-aost-300 bg-white px-4 py-6 text-center hover:border-aost-500 hover:bg-aost-50 focus-within:border-aost-500"
+        >
+          <input
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            disabled={ocrLoading}
+            onChange={(e) => onImageSelected(e.target.files?.[0])}
+          />
+          <span className="text-2xl" aria-hidden="true">
+            🖼️
+          </span>
+          <span className="mt-1 text-sm font-medium text-aost-700">
+            {ocrLoading ? "Reading image…" : "Drop an image or tap to choose"}
+          </span>
+          <span className="text-xs text-aost-900/60">
+            PNG, JPG, or WEBP · printed Tamil or Tanglish
+          </span>
+        </label>
+        {ocrNote && (
+          <p role="status" aria-live="polite" className="mt-2 text-sm text-aost-900/70">
+            {ocrNote}
+          </p>
+        )}
+      </section>
+
       {error && (
         <div
           role="alert"
+          aria-live="assertive"
           className="mb-4 rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-red-900"
         >
           <p className="font-medium">Could not translate</p>
@@ -175,9 +257,10 @@ export default function HomePage() {
             <button
               type="button"
               onClick={onCopy}
+              aria-label="Copy Tamil text to clipboard"
               className="rounded-xl border border-aost-400 bg-white px-4 py-2 text-sm font-medium text-aost-700 hover:bg-aost-100"
             >
-              Copy
+              {copied ? "Copied!" : "Copy"}
             </button>
             <p className="self-center text-sm text-aost-900/60">
               Tap any word with alternatives to swap.
@@ -221,7 +304,7 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={() => removeHistory(h.id)}
-                  className="ml-3 text-aost-900/40 hover:text-red-600"
+                  className="ml-3 text-aost-700 hover:text-red-600"
                   aria-label={`Remove ${h.tanglish}`}
                 >
                   ✕
@@ -291,14 +374,16 @@ function WordChip({
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
+        aria-haspopup="menu"
         aria-label={`${chosen} — ${word.alternatives.length} alternatives`}
+        lang="ta"
         className="rounded-md border-b-2 border-dotted border-aost-500 hover:bg-aost-100 focus:bg-aost-100"
       >
         {chosen}
       </button>
       {isOpen && (
         <span
-          role="dialog"
+          role="menu"
           aria-label={`Alternatives for ${chosen}`}
           className="absolute left-0 top-full z-10 mt-1 min-w-[8rem] rounded-xl border-2 border-aost-400 bg-white p-2 text-base shadow-lg"
         >
@@ -306,6 +391,7 @@ function WordChip({
             <button
               key={alt}
               type="button"
+              role="menuitem"
               onClick={() => onPick(alt)}
               className={`block w-full rounded-md px-2 py-1 text-left font-tamil hover:bg-aost-50 ${
                 alt === chosen ? "bg-aost-100 font-semibold" : ""

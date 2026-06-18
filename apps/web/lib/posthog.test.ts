@@ -55,7 +55,9 @@ describe("initPostHog()", () => {
     process.env.NEXT_PUBLIC_POSTHOG_KEY = "phc_test_123";
     process.env.NEXT_PUBLIC_POSTHOG_HOST = "https://eu.i.posthog.com";
     initPostHog();
-    const [, options] = (posthog.init as unknown as { mock: { calls: unknown[][] } }).mock.calls[0];
+    const [, options] = (
+      posthog.init as unknown as { mock: { calls: [unknown, { api_host?: string }][] } }
+    ).mock.calls[0];
     expect(options.api_host).toBe("https://eu.i.posthog.com");
   });
 

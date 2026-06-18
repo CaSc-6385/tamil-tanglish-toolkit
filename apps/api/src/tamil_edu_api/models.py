@@ -36,6 +36,23 @@ class TranslateResponse(BaseModel):
     duration_ms: int = Field(..., ge=0, description="Server-side processing time in milliseconds")
 
 
+class OcrLineOut(BaseModel):
+    """One detected line of text. Mirrors `tamil_edu_ocr.OcrLine`."""
+
+    text: str = Field(..., description="The recognised text for this line")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Mean confidence in [0, 1]")
+
+
+class OcrResponse(BaseModel):
+    text: str = Field(..., description="All recognised text, lines joined by spaces")
+    lines: list[OcrLineOut] = Field(
+        default_factory=list, description="Per-line text + confidence, in reading order"
+    )
+    avg_confidence: float = Field(..., ge=0.0, le=1.0, description="Mean confidence across lines")
+    backend: str = Field(..., description="OCR backend used (baseline / tesseract)")
+    duration_ms: int = Field(..., ge=0, description="Server-side processing time in milliseconds")
+
+
 class HealthResponse(BaseModel):
     status: str
     backend: str

@@ -9,11 +9,13 @@ license = { text = "MIT" }
 dependencies = [
     "tamil-edu-transliterate",
     "tamil-edu-api",
+    "tamil-edu-ocr",
 ]
 
 [tool.uv.sources]
 tamil-edu-transliterate = { workspace = true }
 tamil-edu-api = { workspace = true }
+tamil-edu-ocr = { workspace = true }
 
 [project.optional-dependencies]
 dev = [
@@ -32,6 +34,11 @@ dev = [
     # root --all-extras only sees root's extras, so duplicated here for CI).
     "httpx>=0.27",
     "pytest-asyncio>=0.24",
+    # OCR test deps (packages/ocr [dev] extras duplicated here so the mocked
+    # Tesseract tests run under root `uv sync --all-extras` in CI; the binary
+    # itself is not needed — image_to_data is monkeypatched).
+    "pytesseract>=0.3.13",
+    "pillow>=10.2",
 ]
 
 [tool.uv]
@@ -40,8 +47,8 @@ package = false
 [tool.uv.workspace]
 # Only directories with a real, buildable pyproject.toml.
 # eval/ is a flat script dir (no pyproject) — its deps live in the root [dev] extras.
-# packages/{grammar,ocr,pylib} will be added as they get scaffolded in S2+.
-members = ["packages/transliterate", "apps/api"]
+# packages/{grammar,pylib} will be added as they get scaffolded in S2+.
+members = ["packages/transliterate", "apps/api", "packages/ocr"]
 exclude = []
 
 [tool.ruff]
@@ -70,7 +77,9 @@ indent-style = "space"
 minversion = "8.0"
 testpaths = ["apps", "packages", "eval"]
 python_files = ["test_*.py", "*_test.py"]
-addopts = ["-ra", "--strict-markers"]
+# importlib import mode lets same-named test files (e.g. test_baseline.py) live in
+# multiple packages' tests/ dirs without collision and without needing __init__.py.
+addopts = ["-ra", "--strict-markers", "--import-mode=importlib"]
 # Put repo root on sys.path so `from eval.run import ...` works
 # (eval/ is a flat package with __init__.py, not pip-installed).
 pythonpath = ["."]

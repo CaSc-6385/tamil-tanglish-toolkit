@@ -8,10 +8,13 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.31.0",
     "pydantic>=2.9",
+    "python-multipart>=0.0.9",  # FastAPI needs this for multipart/form-data (POST /ocr)
     # Production includes aksharamukha (free rule-based) + openai (paid, high quality).
     # IndicXlit extra omitted — currently blocked (ADR-0002).
     # Pick backend at runtime via TRANSLITERATE_BACKEND env var.
     "tamil-edu-transliterate[aksharamukha,openai]",
+    # OCR engine. Tesseract backend (CPU, free); pick at runtime via OCR_BACKEND.
+    "tamil-edu-ocr[tesseract]",
 ]
 
 [project.optional-dependencies]
@@ -31,3 +34,4 @@ packages = ["src/tamil_edu_api"]
 
 [tool.uv.sources]
 tamil-edu-transliterate = { workspace = true }
+tamil-edu-ocr = { workspace = true }

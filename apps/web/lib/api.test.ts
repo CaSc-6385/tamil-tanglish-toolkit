@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, health, translate } from "./api";
+import { ApiError, health, ocr, translate } from "./api";
 
 const originalFetch = globalThis.fetch;
 
@@ -84,6 +84,52 @@ describe("translate()", () => {
     });
 
     await expect(translate("x")).rejects.toThrow("HTTP 500");
+  });
+});
+
+describe("ocr()", () => {
+  beforeEach(() => {
+    globalThis.fetch = vi.fn();
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  it("posts multipart FormData to /ocr and returns the body", async () => {
+    const mock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        text: "naan tamil padikiren",
+        lines: [{ text: "naan tamil padikiren", confidence: 0.93 }],
+        avg_confidence: 0.93,
+        backend: "tesseract",
+        duration_ms: 120,
+      }),
+    });
+    globalThis.fetch = mock as unknown as typeof fetch;
+
+    const file = new File([new Uint8Array([1, 2, 3])], "note.png", { type: "image/png" });
+    const r = await ocr(file);
+
+    const [url, init] = mock.mock.calls[0];
+    expect(String(url)).toContain("/ocr");
+    expect(init.method).toBe("POST");
+    expect(init.body).toBeInstanceOf(FormData);
+    // The browser sets multipart Content-Type itself — we must NOT set it.
+    expect(init.headers).toBeUndefined();
+    expect(r.text).toBe("naan tamil padikiren");
+    expect(r.backend).toBe("tesseract");
+  });
+
+  it("throws ApiError with detail on failure", async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false,
+      status: 415,
+      json: async () => ({ detail: "Unsupported image type: text/plain" }),
+    });
+    const file = new File(["x"], "note.txt", { type: "text/plain" });
+    await expect(ocr(file)).rejects.toThrow("Unsupported image type");
   });
 });
 
