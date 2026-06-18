@@ -131,17 +131,28 @@ export default function HomePage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
-      <header className="mb-8 text-center">
-        <h1 className="text-4xl font-bold text-aost-700">AOST Tamil</h1>
-        <p className="mt-2 text-lg text-aost-900/80">
-          Type Tanglish, get Tamil. <span className="font-tamil">வணக்கம்! 🌸</span>
+    <main className="mx-auto max-w-2xl px-5 py-12 sm:py-16">
+      <header className="mb-8 animate-fade-up">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-aost-300">
+          <span className="h-2 w-2 animate-pulse-dot rounded-full bg-aost-400" aria-hidden="true" />
+          Tanglish → Tamil · free &amp; local
+        </span>
+        <h1 className="gradient-text mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl">
+          AOST Tamil
+        </h1>
+        <p className="mt-3 text-lg text-slate-400">
+          Type Tanglish, get correct Tamil.{" "}
+          <span className="font-tamil text-slate-200">வணக்கம்! 🌸</span>
         </p>
       </header>
 
-      <form onSubmit={onSubmit} className="mb-6">
-        <label htmlFor="tanglish" className="mb-2 block text-base font-medium">
-          Type in Tanglish:
+      <form
+        onSubmit={onSubmit}
+        className="glass mb-5 animate-fade-up rounded-3xl p-5 sm:p-6"
+        style={{ animationDelay: "0.07s" }}
+      >
+        <label htmlFor="tanglish" className="mb-2 block text-sm font-semibold text-slate-200">
+          Type in Tanglish
         </label>
         <textarea
           id="tanglish"
@@ -151,10 +162,10 @@ export default function HomePage() {
           placeholder="e.g. vanakkam nanba"
           rows={3}
           maxLength={2000}
-          className="w-full rounded-2xl border-2 border-aost-300 bg-white px-4 py-3 text-kid placeholder:text-aost-400 focus:border-aost-500"
+          className="w-full resize-y rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-kid text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-aost-400/70 focus:bg-white/[0.07] focus:ring-4 focus:ring-aost-400/15"
           aria-describedby="tanglish-help"
         />
-        <p id="tanglish-help" className="mt-1 text-sm text-aost-900/60">
+        <p id="tanglish-help" className="mt-1.5 text-xs text-slate-500">
           Up to 2000 characters. Try a sample below to get started.
         </p>
 
@@ -164,7 +175,7 @@ export default function HomePage() {
               key={s}
               type="button"
               onClick={() => setInput(s)}
-              className="rounded-full border border-aost-300 bg-aost-100 px-3 py-1 text-sm text-aost-700 hover:bg-aost-200"
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-slate-300 transition hover:border-aost-400/50 hover:bg-white/10 hover:text-white"
             >
               {s}
             </button>
@@ -174,14 +185,21 @@ export default function HomePage() {
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="mt-4 w-full rounded-2xl bg-aost-500 px-5 py-3 text-lg font-semibold text-white shadow-sm hover:bg-aost-600 disabled:cursor-not-allowed disabled:bg-aost-300"
+          className="shimmer relative mt-5 flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-r from-aost-400 via-orange-500 to-aost-500 px-5 py-3.5 text-lg font-bold text-ink-900 shadow-[0_14px_30px_-10px_rgba(247,174,53,0.6)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-12px_rgba(247,174,53,0.75)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
         >
+          {loading && (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink-900/40 border-t-ink-900" />
+          )}
           {loading ? "Translating…" : "Translate to Tamil"}
         </button>
       </form>
 
-      <section aria-labelledby="ocr-heading" className="mb-6">
-        <h2 id="ocr-heading" className="mb-2 text-base font-medium text-aost-900">
+      <section
+        aria-labelledby="ocr-heading"
+        className="glass mb-5 animate-fade-up rounded-3xl p-5 sm:p-6"
+        style={{ animationDelay: "0.14s" }}
+      >
+        <h2 id="ocr-heading" className="mb-3 text-sm font-semibold text-slate-200">
           Or read text from an image
         </h2>
         <label
@@ -190,7 +208,7 @@ export default function HomePage() {
             e.preventDefault();
             onImageSelected(e.dataTransfer.files?.[0]);
           }}
-          className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-aost-300 bg-white px-4 py-6 text-center hover:border-aost-500 hover:bg-aost-50 focus-within:border-aost-500"
+          className="group flex cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-white/15 bg-white/[0.03] px-4 py-7 text-center transition hover:border-aost-400/60 hover:bg-white/5 focus-within:border-aost-400/60"
         >
           <input
             type="file"
@@ -199,18 +217,18 @@ export default function HomePage() {
             disabled={ocrLoading}
             onChange={(e) => onImageSelected(e.target.files?.[0])}
           />
-          <span className="text-2xl" aria-hidden="true">
+          <span className="text-3xl transition-transform group-hover:scale-110" aria-hidden="true">
             🖼️
           </span>
-          <span className="mt-1 text-sm font-medium text-aost-700">
+          <span className="text-sm font-medium text-slate-200">
             {ocrLoading ? "Reading image…" : "Drop an image or tap to choose"}
           </span>
-          <span className="text-xs text-aost-900/60">
+          <span className="text-xs text-slate-500">
             PNG, JPG, or WEBP · printed Tamil or Tanglish
           </span>
         </label>
         {ocrNote && (
-          <p role="status" aria-live="polite" className="mt-2 text-sm text-aost-900/70">
+          <p role="status" aria-live="polite" className="mt-2 text-sm text-aost-300">
             {ocrNote}
           </p>
         )}
@@ -220,26 +238,35 @@ export default function HomePage() {
         <div
           role="alert"
           aria-live="assertive"
-          className="mb-4 rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-red-900"
+          className="mb-5 animate-fade-up rounded-2xl border border-red-500/30 bg-red-500/10 p-4"
         >
-          <p className="font-medium">Could not translate</p>
-          <p className="text-sm">{error}</p>
+          <p className="font-semibold text-red-300">Could not translate</p>
+          <p className="mt-0.5 text-sm text-red-200/80">{error}</p>
         </div>
       )}
 
       {result && (
-        <section aria-labelledby="output-heading" className="mb-8">
-          <div className="flex items-baseline justify-between">
-            <h2 id="output-heading" className="text-lg font-medium text-aost-900">
-              Tamil:
+        <section
+          aria-labelledby="output-heading"
+          className="glass mb-5 animate-fade-up rounded-3xl p-5 sm:p-6"
+        >
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2
+              id="output-heading"
+              className="text-sm font-semibold uppercase tracking-wider text-slate-400"
+            >
+              Tamil
             </h2>
-            <span className="text-xs text-aost-900/50">
+            <span className="text-xs text-slate-500">
               {result.backend} · {result.duration_ms} ms
             </span>
           </div>
 
-          <div className="mt-2 rounded-2xl border-2 border-aost-400 bg-aost-50 px-5 py-4">
-            <p className="font-tamil text-kid-lg leading-relaxed" lang="ta">
+          <div className="rounded-2xl border border-white/10 bg-black/30 px-5 py-5">
+            <p
+              className="tamil-glow animate-pop-in font-tamil text-kid-lg leading-relaxed text-white"
+              lang="ta"
+            >
               {result.words.map((w, i) => (
                 <WordChip
                   key={i}
@@ -253,32 +280,37 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex items-center gap-3">
             <button
               type="button"
               onClick={onCopy}
               aria-label="Copy Tamil text to clipboard"
-              className="rounded-xl border border-aost-400 bg-white px-4 py-2 text-sm font-medium text-aost-700 hover:bg-aost-100"
+              className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
+                copied
+                  ? "border-teal-400/40 bg-teal-400/15 text-teal-200"
+                  : "border-white/10 bg-white/5 text-teal-300 hover:bg-white/10"
+              }`}
             >
               {copied ? "Copied!" : "Copy"}
             </button>
-            <p className="self-center text-sm text-aost-900/60">
-              Tap any word with alternatives to swap.
-            </p>
+            <p className="text-sm text-slate-500">Tap any underlined word to swap.</p>
           </div>
         </section>
       )}
 
       {history.length > 0 && (
-        <section aria-labelledby="history-heading" className="mb-10">
+        <section
+          aria-labelledby="history-heading"
+          className="glass mb-8 animate-fade-up rounded-3xl p-5 sm:p-6"
+        >
           <div className="mb-3 flex items-baseline justify-between">
-            <h2 id="history-heading" className="text-lg font-medium text-aost-900">
+            <h2 id="history-heading" className="text-sm font-semibold text-slate-200">
               Recent translations
             </h2>
             <button
               type="button"
               onClick={clearHistory}
-              className="text-sm text-aost-700 underline hover:text-aost-900"
+              className="text-sm text-slate-400 underline-offset-2 transition hover:text-white hover:underline"
               aria-label={`Clear all ${history.length} history items`}
             >
               Clear all
@@ -288,7 +320,7 @@ export default function HomePage() {
             {history.map((h) => (
               <li
                 key={h.id}
-                className="flex items-center justify-between rounded-xl border border-aost-200 bg-white px-3 py-2"
+                className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 transition hover:bg-white/10"
               >
                 <button
                   type="button"
@@ -296,15 +328,15 @@ export default function HomePage() {
                   className="min-w-0 flex-1 truncate text-left"
                   aria-label={`Reuse ${h.tanglish}`}
                 >
-                  <span className="block truncate text-sm text-aost-900/70">{h.tanglish}</span>
-                  <span className="font-tamil block truncate" lang="ta">
+                  <span className="block truncate text-sm text-slate-500">{h.tanglish}</span>
+                  <span className="block truncate font-tamil text-slate-100" lang="ta">
                     {h.tamil}
                   </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => removeHistory(h.id)}
-                  className="ml-3 text-aost-700 hover:text-red-600"
+                  className="ml-3 text-slate-500 transition hover:text-red-400"
                   aria-label={`Remove ${h.tanglish}`}
                 >
                   ✕
@@ -312,30 +344,39 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-xs text-aost-900/50">
+          <p className="mt-2 text-xs text-slate-600">
             Saved only on your device. No account, no upload.
           </p>
         </section>
       )}
 
-      <footer className="mt-12 border-t border-aost-200 pt-6 text-center text-sm text-aost-900/60">
+      <footer className="mt-10 border-t border-white/10 pt-6 text-center text-sm text-slate-500">
         <p>
           Part of{" "}
-          <a className="underline" href="https://www.academyofsmartthinkers.com/">
+          <a
+            className="text-aost-300 underline-offset-2 hover:underline"
+            href="https://www.academyofsmartthinkers.com/"
+          >
             Academy of Smart Thinkers
           </a>
           . Open source on{" "}
-          <a className="underline" href="https://github.com/chandralabs/tamil-edu-toolkit">
+          <a
+            className="text-aost-300 underline-offset-2 hover:underline"
+            href="https://github.com/chandralabs/tamil-edu-toolkit"
+          >
             GitHub
           </a>
           .
         </p>
         <p className="mt-1">
           Engine:{" "}
-          <a className="underline" href="https://github.com/chandralabs/tamil-llama">
+          <a
+            className="text-aost-300 underline-offset-2 hover:underline"
+            href="https://github.com/chandralabs/tamil-llama"
+          >
             chandralabs/tamil-llama
           </a>{" "}
-          + IndicXlit.
+          via Ollama.
         </p>
       </footer>
     </main>
@@ -377,7 +418,7 @@ function WordChip({
         aria-haspopup="menu"
         aria-label={`${chosen} — ${word.alternatives.length} alternatives`}
         lang="ta"
-        className="rounded-md border-b-2 border-dotted border-aost-500 hover:bg-aost-100 focus:bg-aost-100"
+        className="rounded-md border-b-2 border-dotted border-aost-400/70 px-0.5 transition hover:bg-white/10 focus:bg-white/10"
       >
         {chosen}
       </button>
@@ -385,7 +426,7 @@ function WordChip({
         <span
           role="menu"
           aria-label={`Alternatives for ${chosen}`}
-          className="absolute left-0 top-full z-10 mt-1 min-w-[8rem] rounded-xl border-2 border-aost-400 bg-white p-2 text-base shadow-lg"
+          className="absolute left-0 top-full z-10 mt-1 min-w-[9rem] animate-pop-in rounded-xl border border-white/10 bg-ink-700/95 p-1.5 text-base shadow-2xl backdrop-blur"
         >
           {word.alternatives.map((alt) => (
             <button
@@ -393,8 +434,8 @@ function WordChip({
               type="button"
               role="menuitem"
               onClick={() => onPick(alt)}
-              className={`block w-full rounded-md px-2 py-1 text-left font-tamil hover:bg-aost-50 ${
-                alt === chosen ? "bg-aost-100 font-semibold" : ""
+              className={`block w-full rounded-lg px-2.5 py-1.5 text-left font-tamil transition hover:bg-white/10 ${
+                alt === chosen ? "bg-aost-400/15 font-semibold text-aost-200" : "text-slate-200"
               }`}
               lang="ta"
             >

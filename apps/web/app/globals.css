@@ -1,32 +1,160 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;700&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: 255 248 234;
-  --foreground: 60 38 14;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 30 24 18;
-    --foreground: 250 245 235;
-  }
+  /* Dark theme — deep slate with warm saffron + teal accents. */
+  --bg: 9 11 18; /* near-black slate */
+  --fg: 237 240 247;
+  --muted: 148 158 178;
+  --card: 22 26 38;
+  --border: 255 255 255;
+  --saffron: 247 174 53;
+  --teal: 45 212 191;
 }
 
 html,
 body {
-  background-color: rgb(var(--background));
-  color: rgb(var(--foreground));
+  background-color: rgb(var(--bg));
+  color: rgb(var(--fg));
   font-size: 18px;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Kid-friendly focus ring */
+/* ---------- Animated aurora backdrop ---------- */
+body {
+  position: relative;
+  overflow-x: hidden;
+}
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+body::before {
+  width: 48vw;
+  height: 48vw;
+  top: -16vw;
+  right: -12vw;
+  background: radial-gradient(circle at 30% 30%, #ffce85, #f19014 45%, transparent 70%);
+  animation: drift-a 20s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+body::after {
+  width: 44vw;
+  height: 44vw;
+  bottom: -18vw;
+  left: -14vw;
+  background: radial-gradient(circle at 60% 40%, #5eead4, #0d9488 45%, transparent 70%);
+  opacity: 0.4;
+  animation: drift-b 26s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+@keyframes drift-a {
+  to {
+    transform: translate3d(-6vw, 6vh, 0) scale(1.15);
+  }
+}
+@keyframes drift-b {
+  to {
+    transform: translate3d(7vw, -5vh, 0) scale(1.2);
+  }
+}
+
+/* Keep app content above the aurora */
+main {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- Reusable surfaces ---------- */
+.glass {
+  background: rgba(var(--card), 0.66);
+  border: 1px solid rgba(var(--border), 0.08);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow:
+    0 24px 60px -28px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+.gradient-text {
+  background: linear-gradient(100deg, #f7ae35 0%, #fb923c 35%, #2dd4bf 75%, #a78bfa 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: sheen 8s linear infinite;
+}
+@keyframes sheen {
+  to {
+    background-position: 220% center;
+  }
+}
+
+/* Shimmer sweep used on the primary button */
+.shimmer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 80%
+  );
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.shimmer:hover:not(:disabled)::before {
+  animation: shimmer 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes shimmer {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+/* Tamil output glow */
+.tamil-glow {
+  text-shadow: 0 0 24px rgba(247, 174, 53, 0.18);
+}
+
+/* Focus ring (dark) */
 :focus-visible {
-  outline: 3px solid theme("colors.aost.500");
+  outline: 2px solid rgb(var(--saffron));
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
+}
+
+/* Custom scrollbar + selection */
+::selection {
+  background: rgba(247, 174, 53, 0.3);
+  color: #fff;
+}
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
