@@ -4,12 +4,27 @@ Tanglish (Roman-script Tamil) → Tamil Unicode transliteration. Pluggable backe
 
 ## Backends
 
-| Backend   | Class                     | Deps                                     | Quality         | Speed                   | Notes                                                                    |
-| --------- | ------------------------- | ---------------------------------------- | --------------- | ----------------------- | ------------------------------------------------------------------------ |
-| Baseline  | `BaselineTransliterator`  | none                                     | none (identity) | instant                 | Passthrough — used as the eval baseline and as a fast stand-in for tests |
-| IndicXlit | `IndicXlitTransliterator` | `ai4bharat-transliteration` (~1GB model) | SOTA open       | ~50–200ms / word on CPU | Wraps `ai4bharat.transliteration.XlitEngine`                             |
+| Backend      | Class                        | Deps                                     | Quality         | Speed                   | Notes                                                                       |
+| ------------ | ---------------------------- | ---------------------------------------- | --------------- | ----------------------- | --------------------------------------------------------------------------- |
+| Baseline     | `BaselineTransliterator`     | none                                     | none (identity) | instant                 | Passthrough — used as the eval baseline and as a fast stand-in for tests    |
+| Ollama       | `OllamaTransliterator`       | none (uses a local Ollama server)        | high, **free**  | ~5s / phrase on GPU     | Open Tamil model via Ollama (default `gemma2:9b`). No API key. **Default.** |
+| Aksharamukha | `AksharamukhaTransliterator` | `aksharamukha`                           | rule-based      | instant                 | Offline rule-based fallback                                                 |
+| OpenAI       | `OpenAiGptTransliterator`    | `openai` + `OPENAI_API_KEY`              | high (paid)     | network                 | GPT-4o-mini; paid                                                           |
+| IndicXlit    | `IndicXlitTransliterator`    | `ai4bharat-transliteration` (~1GB model) | SOTA open       | ~50–200ms / word on CPU | Wraps `ai4bharat.transliteration.XlitEngine` — blocked (ADR-0002)           |
 
-More backends planned: rule-based (Aksharamukha), classifier-routed, Tamil-LLaMA prompted.
+### Ollama backend (free, local — default)
+
+```bash
+ollama pull gemma2:9b            # open Tamil-capable model (or chandralabs/tamil-llama)
+export TRANSLITERATE_BACKEND=ollama
+```
+
+Config via env: `OLLAMA_MODEL` (default `gemma2:9b`), `OLLAMA_API_URL`
+(default `http://127.0.0.1:11434/api/generate`), `OLLAMA_TIMEOUT_S` (default `120`).
+The instruction + few-shot examples are embedded in the prompt with a stop
+sequence, so the model returns exactly one transliterated line and preserves
+code-switched English verbatim (`send the message reply pannu` →
+`send the message reply பண்ணு`).
 
 ## Install
 

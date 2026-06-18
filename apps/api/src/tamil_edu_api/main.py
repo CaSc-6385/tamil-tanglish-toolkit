@@ -3,11 +3,16 @@
 Run locally:
     uv run uvicorn tamil_edu_api.main:app --reload --port 8000
 
-Default backend is `aksharamukha` (rule-based, real Tamil output). Other options
+Default backend is `ollama` (free, local, open-source Tamil model). Other options
 via env var:
-    TRANSLITERATE_BACKEND=baseline    # passthrough (testing / no model)
-    TRANSLITERATE_BACKEND=aksharamukha # rule-based real Tamil (default)
-    TRANSLITERATE_BACKEND=indicxlit   # ML model — currently blocked (ADR-0002)
+    TRANSLITERATE_BACKEND=ollama       # free local LLM via Ollama (default)
+    TRANSLITERATE_BACKEND=aksharamukha # rule-based real Tamil (offline fallback)
+    TRANSLITERATE_BACKEND=baseline     # passthrough (testing / no model)
+    TRANSLITERATE_BACKEND=openai-gpt   # GPT-4o-mini (paid; needs OPENAI_API_KEY)
+    TRANSLITERATE_BACKEND=indicxlit    # ML model — currently blocked (ADR-0002)
+
+The ollama backend needs an Ollama server with a model pulled (default gemma2:9b);
+configure via OLLAMA_MODEL / OLLAMA_API_URL. See packages/transliterate/ollama.py.
 """
 
 from __future__ import annotations
@@ -34,7 +39,7 @@ from tamil_edu_api.models import (
     WordOut,
 )
 
-_VALID_BACKENDS = frozenset({"baseline", "aksharamukha", "openai-gpt", "indicxlit"})
+_VALID_BACKENDS = frozenset({"baseline", "aksharamukha", "ollama", "openai-gpt", "indicxlit"})
 _VALID_OCR_BACKENDS = frozenset({"baseline", "tesseract"})
 
 # OCR upload limits (PLAN.md S3-4: image size cap 10MB).
@@ -46,9 +51,9 @@ _ALLOWED_IMAGE_TYPES = frozenset(
 
 def get_backend() -> str:
     """Read the active backend from env each call so tests + dev can override
-    without restarting the app. Falls back to aksharamukha (real Tamil) if unset.
+    without restarting the app. Defaults to the free local Ollama model.
     """
-    return os.environ.get("TRANSLITERATE_BACKEND", "aksharamukha").strip().lower()
+    return os.environ.get("TRANSLITERATE_BACKEND", "ollama").strip().lower()
 
 
 def get_ocr_backend() -> str:
