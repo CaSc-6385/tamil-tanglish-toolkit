@@ -152,7 +152,7 @@ missing the script installs it.)
 
 > Reminder: **close & reopen PowerShell after each `winget install`.**
 
-**Step 1 — Ollama (the model runtime)**
+##### Step 1 — Ollama (the model runtime)
 
 ```powershell
 winget install -e --id Ollama.Ollama --accept-package-agreements --accept-source-agreements
@@ -164,9 +164,10 @@ Close PowerShell, open a **new** one, then verify:
 ollama --version
 ```
 
-**Step 1b — zstd** (Windows only). Ollama's model layers are zstd-compressed, so on a
-clean Windows machine `ollama pull` can fail during extraction with a `zstd` /
-`program not found` error. Install it once:
+##### Step 1b — zstd (Windows only)
+
+Ollama's model layers are zstd-compressed, so on a clean Windows machine `ollama pull`
+can fail during extraction with a `zstd` / `program not found` error. Install it once:
 
 ```powershell
 winget install -e --id Facebook.Zstandard --accept-package-agreements --accept-source-agreements
@@ -174,15 +175,17 @@ winget install -e --id Facebook.Zstandard --accept-package-agreements --accept-s
 
 Close PowerShell, open a **new** one, then verify: `zstd --version`.
 
-**Step 2 — download the model** (Ollama must be running — its installer starts it; if
-not, run `ollama serve` in a separate window):
+##### Step 2 — download the model
+
+Ollama must be running — its installer starts it; if not, run `ollama serve` in a
+separate window.
 
 ```powershell
 ollama pull gemma2:9b
 ollama list                # should show gemma2:9b
 ```
 
-**Step 3 — Tesseract (OCR — optional, only for the photo feature)**
+##### Step 3 — Tesseract (OCR — optional, only for the photo feature)
 
 ```powershell
 winget install -e --id UB-Mannheim.TesseractOCR --accept-package-agreements --accept-source-agreements
@@ -196,7 +199,7 @@ $env:Path += ";C:\Program Files\Tesseract-OCR"   # if it isn't already on PATH
 tesseract --version
 ```
 
-**Step 4 — uv (Python), Node.js, pnpm**
+##### Step 4 — uv (Python), Node.js, pnpm
 
 ```powershell
 winget install -e --id astral-sh.uv --accept-package-agreements --accept-source-agreements
@@ -210,7 +213,9 @@ npm install -g pnpm
 uv --version ; node --version ; pnpm --version   # all three must print a version
 ```
 
-**Step 5 — get the code + install dependencies** (new PowerShell window):
+##### Step 5 — get the code + install dependencies
+
+In a new PowerShell window:
 
 ```powershell
 git clone https://github.com/CaSc-6385/tamil-tanglish-toolkit.git
@@ -219,7 +224,9 @@ uv sync --all-extras
 pnpm install
 ```
 
-**Step 6 — run it** in **two** PowerShell windows, **both** opened in the project folder
+##### Step 6 — run it
+
+Use **two** PowerShell windows, **both** opened in the project folder
 (`cd path\to\tamil-tanglish-toolkit`). Note PowerShell's `$env:` syntax:
 
 ```powershell
@@ -248,7 +255,7 @@ Open **http://localhost:3000** (first translation takes ~15–30 s while the mod
 | `winget : The term 'winget' is not recognized`                              | Install **App Installer** from the Microsoft Store (that's what provides `winget`), then reopen PowerShell.                   |
 | winget: `No package found matching input criteria`                          | Update App Installer from the Store, or use the direct installer links below.                                                 |
 | `ollama pull` → could not connect / connection refused                      | Ollama isn't running — open the **Ollama** app from Start, or run `ollama serve` in another window, then retry.               |
-| `ollama pull` fails extracting · `zstd` / `program not found` during pull    | Model layers are zstd-compressed — `winget install -e --id Facebook.Zstandard`, reopen PowerShell (`zstd --version`), retry. |
+| `ollama pull` fails extracting · `zstd` / `program not found` during pull   | Model layers are zstd-compressed — `winget install -e --id Facebook.Zstandard`, reopen PowerShell (`zstd --version`), retry.  |
 | OCR fails: `tesseract is not installed` / not found                         | Set `$env:TESSERACT_CMD="C:\Program Files\Tesseract-OCR\tesseract.exe"` before starting the API; check `tesseract --version`. |
 | `'git' is not recognized`                                                   | `winget install -e --id Git.Git`, then reopen PowerShell.                                                                     |
 | Web shows "Could not reach the server"                                      | Window A (the API on :8000) must be running. Re-check it didn't error.                                                        |
