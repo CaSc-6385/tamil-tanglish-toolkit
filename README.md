@@ -68,8 +68,9 @@ with one env var (`OLLAMA_MODEL`, `OCR_BACKEND`, `ANALYZE_TRANSLATE_BACKEND`).
 
 ## Setup & run — the easy way (2 commands)
 
-On **macOS (Homebrew)** or **Debian/Ubuntu (apt)**, two commands do everything —
-install the model runtime + model + OCR engine + all dependencies, then launch:
+On **macOS (Homebrew)**, **Debian/Ubuntu (apt)**, or **Windows via WSL2**
+([see the Windows section](#windows-setup)), two commands do everything — install the
+model runtime + model + OCR engine + all dependencies, then launch:
 
 ```bash
 ./scripts/setup.sh    # installs Ollama + gemma2 model + Tesseract + all deps   (or: make setup)
@@ -87,6 +88,86 @@ OS, or need to troubleshoot? The full step-by-step is right below.
 
 ---
 
+## Windows setup
+
+You have two options on Windows.
+
+### Option A — WSL2 (recommended; uses the one-command scripts)
+
+WSL2 gives you a real Linux environment where `./scripts/setup.sh` and
+`./scripts/run.sh` work exactly as on Linux.
+
+1. In **PowerShell (Run as Administrator)**, install Ubuntu, then reboot if asked:
+
+   ```powershell
+   wsl --install -d Ubuntu
+   ```
+
+2. Open **Ubuntu** from the Start menu, then inside it:
+
+   ```bash
+   sudo apt-get update
+   git clone https://github.com/CaSc-6385/tamil-tanglish-toolkit.git
+   cd tamil-tanglish-toolkit
+   ./scripts/setup.sh      # installs Ollama + gemma2 model + Tesseract + all deps
+   ./scripts/run.sh        # starts the API + web app
+   ```
+
+3. Open **http://localhost:3000** in your **Windows browser** — WSL forwards localhost
+   automatically. Done.
+
+> If you have an NVIDIA GPU, install the Windows NVIDIA driver and WSL2 will use it for
+> the model automatically; otherwise it runs on CPU (slower, still works).
+
+### Option B — native Windows (PowerShell, no WSL)
+
+The bash scripts don't run in native PowerShell, so do these steps once. Use
+[winget](https://learn.microsoft.com/windows/package-manager/winget/) (or the linked
+installers below).
+
+```powershell
+# 1. Runtimes + tools
+winget install --id Ollama.Ollama             # local model runtime (starts automatically)
+winget install --id UB-Mannheim.TesseractOCR  # OCR — during install, TICK "Tamil" under languages
+winget install --id astral-sh.uv              # Python tool
+winget install --id OpenJS.NodeJS.LTS         # Node 20+
+npm install -g pnpm
+
+# 2. The model (~5.4 GB, one time)
+ollama pull gemma2:9b
+
+# 3. Get the code + install dependencies
+git clone https://github.com/CaSc-6385/tamil-tanglish-toolkit.git
+cd tamil-tanglish-toolkit
+uv sync --all-extras
+pnpm install
+```
+
+Then run it in **two PowerShell windows** (note PowerShell's `$env:` syntax):
+
+```powershell
+# Window A — the API
+$env:TRANSLITERATE_BACKEND="ollama"; $env:OCR_BACKEND="tesseract"
+# if OCR can't find Tesseract, also set its path:
+# $env:TESSERACT_CMD="C:\Program Files\Tesseract-OCR\tesseract.exe"
+uv run uvicorn --app-dir apps/api/src tamil_edu_api.main:app --port 8000
+```
+
+```powershell
+# Window B — the web app
+pnpm --filter web dev
+```
+
+Open **http://localhost:3000**.
+
+> No `winget`? Download the installers directly:
+> [Ollama](https://ollama.com/download/windows) ·
+> [Tesseract (UB Mannheim)](https://github.com/UB-Mannheim/tesseract/wiki) ·
+> [uv](https://docs.astral.sh/uv/getting-started/installation/) ·
+> [Node.js](https://nodejs.org/).
+
+---
+
 ## Manual setup — full step-by-step (for reviewers)
 
 > This is a **local AI app**: the model runs on your own machine, so there are no API
@@ -96,12 +177,12 @@ OS, or need to troubleshoot? The full step-by-step is right below.
 
 ### 0. What you need
 
-| Requirement    | Why                     | Notes                                                        |
-| -------------- | ----------------------- | ------------------------------------------------------------ |
-| **~16 GB RAM** | run the gemma2 9B model | 8 GB works with the smaller model in step 2b                 |
-| **~9 GB disk** | model (~5.4 GB) + deps  |                                                              |
-| macOS / Linux  | tested platforms        | Windows: use **WSL2** (Ubuntu) and follow the Linux commands |
-| Internet       | one-time downloads      | the app itself runs fully offline afterwards                 |
+| Requirement             | Why                     | Notes                                                                        |
+| ----------------------- | ----------------------- | ---------------------------------------------------------------------------- |
+| **~16 GB RAM**          | run the gemma2 9B model | 8 GB works with the smaller model in step 2b                                 |
+| **~9 GB disk**          | model (~5.4 GB) + deps  |                                                                              |
+| macOS / Linux / Windows | all supported           | Windows: see the [Windows setup](#windows-setup) (WSL2 or native PowerShell) |
+| Internet                | one-time downloads      | the app itself runs fully offline afterwards                                 |
 
 A GPU is **not required** (Apple-Silicon Macs use the GPU automatically; on a plain
 CPU it just runs slower).
