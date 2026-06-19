@@ -381,7 +381,7 @@ tesseract --list-langs | grep -E '^(tam|eng)$'      # must list BOTH tam and eng
 | --------------- | --------------------------------------------------------------------------------------------- | ----------------------- |
 | **uv** (Python) | `curl -LsSf https://astral.sh/uv/install.sh \| sh`                                            | `uv --version`          |
 | **Node 20+**    | macOS: `brew install node` · Linux: [nodesource](https://github.com/nodesource/distributions) | `node --version` (≥ 20) |
-| **pnpm**        | `npm install -g pnpm`                                                                         | `pnpm --version`        |
+| **pnpm**        | `corepack enable --install-directory ~/.local/bin pnpm` (ships with Node; uses the pinned pnpm@9.12.0 — don't `npm install -g pnpm`) | `pnpm --version` (ensure `~/.local/bin` is on `PATH`) |
 
 ---
 

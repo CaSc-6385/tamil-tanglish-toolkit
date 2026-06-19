@@ -94,9 +94,17 @@ have node || { echo "Node install failed. Install Node 20+ manually, then re-run
 
 # pnpm via corepack (bundled with Node), pinned to the repo's pnpm@9.12.0 — avoids a
 # "latest" pnpm that's too new for the installed Node and crashes on every run.
+# We install the shim into ~/.local/bin (first on PATH, set above) rather than plain
+# `corepack enable`: Node's bin dir is often root-owned (NodeSource), so a plain enable
+# silently fails without sudo — and on WSL the Windows PATH leaks in, so a Windows pnpm
+# (which needs a newer Node) wins and crashes with 'node:sqlite'. A user-dir shim that
+# is first on PATH guarantees the pinned Linux pnpm is the one that runs.
 say "pnpm 9.12.0 (via corepack)"
-corepack enable 2>/dev/null || true
-corepack prepare pnpm@9.12.0 --activate && ok "pnpm $(pnpm --version)"
+mkdir -p "$HOME/.local/bin"
+corepack enable --install-directory "$HOME/.local/bin" pnpm 2>/dev/null || true
+corepack prepare pnpm@9.12.0 --activate
+hash -r 2>/dev/null || true
+ok "pnpm $(pnpm --version) ($(command -v pnpm))"
 
 # 5. Dependencies -------------------------------------------------------------
 say "Python dependencies (uv sync)"
