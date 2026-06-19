@@ -9,7 +9,7 @@ FastAPI service that exposes `POST /translate` (and `/health`, `/docs`).
 uv run uvicorn tamil_edu_api.main:app --reload --port 8000
 
 # or via make
-make dev   # boots both web (:3000) and api (:8000)
+make dev   # boots both web (:4000) and api (:8000)
 ```
 
 Then:
@@ -32,7 +32,7 @@ export TRANSLITERATE_BACKEND=indicxlit        # bash
 
 ## CORS
 
-Open by default to `http://localhost:3000` + `http://127.0.0.1:3000`. Override with
+Open by default to `http://localhost:4000` + `http://127.0.0.1:4000`. Override with
 `CORS_ORIGINS=https://a.com,https://b.com`.
 
 ## Tests

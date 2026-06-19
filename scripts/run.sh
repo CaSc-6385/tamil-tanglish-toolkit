@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 
 MODEL="${OLLAMA_MODEL:-gemma2:9b}"
 API_PORT="${API_PORT:-8000}"
-WEB_PORT="${WEB_PORT:-3000}"
+WEB_PORT="${WEB_PORT:-4000}"
 
 red() { printf "\033[1;31m%s\033[0m\n" "$*"; }
 say() { printf "\n\033[1;33m▶ %s\033[0m\n" "$*"; }

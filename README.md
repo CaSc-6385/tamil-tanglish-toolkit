@@ -124,7 +124,7 @@ WSL2 gives you a real Linux environment where `./scripts/setup.sh` and
    ./scripts/run.sh        # starts the API + web app
    ```
 
-3. Open **http://localhost:3000** in your normal **Windows browser** (WSL forwards
+3. Open **http://localhost:4000** in your normal **Windows browser** (WSL forwards
    localhost automatically). Done.
 
 > NVIDIA GPU? Install the Windows NVIDIA driver and WSL2 uses it automatically;
@@ -249,7 +249,7 @@ cd path\to\tamil-tanglish-toolkit
 pnpm --filter web dev
 ```
 
-Open **http://localhost:3000** (first translation takes ~15–30 s while the model loads).
+Open **http://localhost:4000** (first translation takes ~15–30 s while the model loads).
 
 #### Windows troubleshooting
 
@@ -263,7 +263,7 @@ Open **http://localhost:3000** (first translation takes ~15–30 s while the mod
 | `ollama pull` fails extracting · `zstd` / `program not found` during pull   | Model layers are zstd-compressed — `winget install -e --id Facebook.Zstandard`, reopen PowerShell (`zstd --version`), retry.                                                                                            |
 | OCR fails: `tesseract is not installed` / not found                         | Set `$env:TESSERACT_CMD="C:\Program Files\Tesseract-OCR\tesseract.exe"` before starting the API; check `tesseract --version`.                                                                                           |
 | `'git' is not recognized`                                                   | `winget install -e --id Git.Git`, then reopen PowerShell.                                                                                                                                                               |
-| Browser: `localhost refused to connect` / `This site can't be reached`      | First check Window B for a crash. If it just shows no output, the web server is **still compiling** (first Next.js build takes 20-40s) — wait ~30s and refresh once it prints `Ready` / `Local: http://localhost:3000`. |
+| Browser: `localhost refused to connect` / `This site can't be reached`      | First check Window B for a crash. If it just shows no output, the web server is **still compiling** (first Next.js build takes 20-40s) — wait ~30s and refresh once it prints `Ready` / `Local: http://localhost:4000`. |
 | `pnpm` crashes / `SyntaxError` / "requires Node" when you run it            | Your pnpm is **too new for your Node**. Use `node --version` (need v20+); reinstall Node LTS if older, then `corepack enable; corepack prepare pnpm@9.12.0 --activate`. Don't use `npm install -g pnpm`.                |
 | `pnpm: ... node: not found` (in WSL/Ubuntu)                                 | Node isn't installed there. Run `curl -fsSL https://deb.nodesource.com/setup_20.x \| sudo -E bash -` then `sudo apt-get install -y nodejs` (Ubuntu's own `nodejs` is too old), then check `node --version` shows v20+.  |
 | Web shows "Could not reach the server"                                      | Window A (the API on :8000) must be running. Re-check it didn't error.                                                                                                                                                  |
@@ -415,14 +415,14 @@ curl http://localhost:8000/health           # → {"status":"ok",...}
 **Terminal B — the web app (frontend):**
 
 ```bash
-pnpm --filter web dev                        # serves http://localhost:3000
+pnpm --filter web dev                        # serves http://localhost:4000
 ```
 
 ---
 
 ### 7. Use it
 
-Open **http://localhost:3000**, type some Tanglish (e.g. `naan periya naai paarthen`),
+Open **http://localhost:4000**, type some Tanglish (e.g. `naan periya naai paarthen`),
 and click **Translate & explain**.
 
 > ⏳ The **first** request loads the model into memory, so it can take **~15–30 s**.
@@ -447,7 +447,7 @@ curl -s -X POST http://localhost:8000/analyze \
 | `model 'gemma2:9b' not found`                         | Run `ollama pull gemma2:9b` (step 2)                                                         |
 | First translation is very slow / "Translating…" hangs | Normal on first call (model loading). Wait ~30 s; or use `gemma2:2b` (step 2b)               |
 | OCR returns "Tesseract failed"                        | Install Tesseract + Tamil data (step 3); confirm `tesseract --list-langs` shows `tam`        |
-| `Address already in use` on :8000 / :3000             | Another process is using the port: `lsof -ti :8000 \| xargs kill` then retry                 |
+| `Address already in use` on :8000 / :4000             | Another process is using the port: `lsof -ti :8000 \| xargs kill` then retry                 |
 | Web shows "Could not reach the server"                | Make sure Terminal A (the API on :8000) is running                                           |
 | Out of memory while running gemma2:9b                 | Use the smaller model: `OLLAMA_MODEL=gemma2:2b GRAMMAR_MODEL=gemma2:2b` (step 2b)            |
 
@@ -467,7 +467,7 @@ uv sync --all-extras && pnpm install
 # terminal A:
 TRANSLITERATE_BACKEND=ollama OCR_BACKEND=tesseract uv run uvicorn --app-dir apps/api/src tamil_edu_api.main:app --port 8000
 # terminal B:
-pnpm --filter web dev      # → http://localhost:3000
+pnpm --filter web dev      # → http://localhost:4000
 ```
 
 ---

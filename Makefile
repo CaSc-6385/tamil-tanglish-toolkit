@@ -20,7 +20,7 @@ bootstrap:  ## One-time dev setup: install all deps + pre-commit hooks
 	@echo ""
 	@echo "Bootstrap complete. Next: make dev (once apps exist in S1) or make eval"
 
-dev:  ## Run local dev servers (apps/web on :3000, apps/api on :8000)
+dev:  ## Run local dev servers (apps/web on :4000, apps/api on :8000)
 	@if [ ! -d apps/api ] || [ ! -d apps/web ]; then \
 		echo "Apps not scaffolded yet. Run 'make bootstrap' first."; \
 		exit 1; \

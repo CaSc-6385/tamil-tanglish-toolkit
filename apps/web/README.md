@@ -6,13 +6,13 @@ Next.js 14 (App Router) web UI for the Tamil education toolkit.
 
 ```bash
 # from repo root
-make dev          # boots web on :3000 + api on :8000
+make dev          # boots web on :4000 + api on :8000
 
 # or just the web
 pnpm --filter @tamil-edu/web dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:4000.
 
 ## Config
 

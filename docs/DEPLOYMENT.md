@@ -6,7 +6,7 @@ Infra + release strategy for `chandralabs/tamil-edu-toolkit`. Aligned with PLAN.
 
 | Env         | Purpose                | Audience                | Web URL                            | API URL                                | Branch           |
 | ----------- | ---------------------- | ----------------------- | ---------------------------------- | -------------------------------------- | ---------------- |
-| **local**   | dev workstation        | developer               | `localhost:3000`                   | `localhost:8000`                       | feature branches |
+| **local**   | dev workstation        | developer               | `localhost:4000`                   | `localhost:8000`                       | feature branches |
 | **dev**     | per-PR preview         | reviewer                | `<pr-N>.tamil-edu.vercel.app`      | `dev.api.tamil-edu.fly.dev`            | PR branch        |
 | **staging** | end-to-end pre-release | internal raters         | `staging.tamil-edu.vercel.app`     | `staging.api.tamil-edu.fly.dev`        | `main`           |
 | **prod**    | public release         | kids, parents, teachers | `tamil.academyofsmartthinkers.com` | `api.tamil.academyofsmartthinkers.com` | tag `v*.*.*`     |

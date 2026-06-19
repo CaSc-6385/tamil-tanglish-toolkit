@@ -123,7 +123,7 @@ Required tools:
 
 `make dev` runs:
 
-- `apps/web` on :3000
+- `apps/web` on :4000
 - `apps/api` on :8000
 - `ollama serve` on :11434
 

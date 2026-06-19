@@ -7,6 +7,7 @@ $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
 
 $model = if ($env:OLLAMA_MODEL) { $env:OLLAMA_MODEL } else { "gemma2:9b" }
+[int]$webPort = if ($env:WEB_PORT) { [int]$env:WEB_PORT } else { 4000 }
 
 # Make sure Ollama is running.
 try { Invoke-RestMethod "http://localhost:11434/api/tags" -TimeoutSec 3 | Out-Null }
@@ -34,7 +35,7 @@ uv run uvicorn --app-dir apps/api/src tamil_edu_api.main:app --port 8000
 Start-Process powershell -WorkingDirectory $root -ArgumentList "-NoExit", "-Command", $api
 
 # Start the web app in its own window.
-$web = "Set-Location '$root'; pnpm --filter web dev"
+$web = "Set-Location '$root'; pnpm --filter web dev --port $webPort"
 Start-Process powershell -WorkingDirectory $root -ArgumentList "-NoExit", "-Command", $web
 
 # Wait until the web server is actually accepting connections before opening the
@@ -52,12 +53,12 @@ function Wait-Port($port, $timeoutSec) {
 }
 
 Write-Host "`nStarting servers... (first compile can take 20-40s on Windows)" -ForegroundColor Yellow
-if (Wait-Port 3000 120) {
-    Start-Process "http://localhost:3000"
-    Write-Host "Open http://localhost:3000  (close the two PowerShell windows to stop)" -ForegroundColor Green
+if (Wait-Port $webPort 120) {
+    Start-Process "http://localhost:$webPort"
+    Write-Host "Open http://localhost:$webPort  (close the two PowerShell windows to stop)" -ForegroundColor Green
 }
 else {
     Write-Host "Web server didn't come up within 2 min. Check 'Window B' (pnpm dev) for errors," -ForegroundColor Red
-    Write-Host "then open http://localhost:3000 manually once it says 'Ready'." -ForegroundColor Red
+    Write-Host "then open http://localhost:$webPort manually once it says 'Ready'." -ForegroundColor Red
 }
 Write-Host "Note: the first translation also takes ~15-30s while the model loads." -ForegroundColor Yellow
