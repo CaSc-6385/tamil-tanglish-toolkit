@@ -8,6 +8,8 @@
 Built for the **Tanglish-to-Tamil Translator** hackathon (Students track), under the
 [Academy of Smart Thinkers](https://www.academyofsmartthinkers.com/).
 
+![AOST Tamil — type Tanglish, get Tamil with a word-by-word picture breakdown](docs/images/app-screenshot.png)
+
 ---
 
 ## What it does
