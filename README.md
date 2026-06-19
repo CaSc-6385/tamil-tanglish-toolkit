@@ -22,9 +22,6 @@ It doesn't just transliterate letter-by-letter (which gets `nettru` wrong as
 `நெட்ரு`). It **understands the sentence** and writes natural Tamil — then explains
 the grammar with colours and pictures so a learner can follow along.
 
-> **Add a screenshot / demo GIF here** — run the app (below), then record with
-> `Cmd+Shift+5` on macOS and drop the file in `docs/` as `demo.gif`.
-
 ---
 
 ## How the models work (the "merge")
