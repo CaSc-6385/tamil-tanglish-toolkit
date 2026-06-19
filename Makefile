@@ -1,8 +1,14 @@
-.PHONY: help bootstrap dev test lint format build typecheck eval clean
+.PHONY: help setup demo bootstrap dev test lint format build typecheck eval clean
 .DEFAULT_GOAL := help
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
+
+setup:  ## One-command install: Ollama + model + Tesseract + all deps
+	./scripts/setup.sh
+
+demo:  ## One-command launch: start API + web, open the browser (Ctrl+C to stop)
+	./scripts/run.sh
 
 bootstrap:  ## One-time dev setup: install all deps + pre-commit hooks
 	@command -v pnpm >/dev/null 2>&1 || { echo "pnpm not found — install Node 20+ and corepack enable"; exit 1; }

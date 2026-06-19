@@ -66,7 +66,28 @@ with one env var (`OLLAMA_MODEL`, `OCR_BACKEND`, `ANALYZE_TRANSLATE_BACKEND`).
 
 ---
 
-## Setup & Run — full step-by-step (for reviewers)
+## Setup & run — the easy way (2 commands)
+
+On **macOS (Homebrew)** or **Debian/Ubuntu (apt)**, two commands do everything —
+install the model runtime + model + OCR engine + all dependencies, then launch:
+
+```bash
+./scripts/setup.sh    # installs Ollama + gemma2 model + Tesseract + all deps   (or: make setup)
+./scripts/run.sh      # starts the API + web app and opens your browser         (or: make demo)
+```
+
+`setup.sh` is **idempotent** (it skips anything already installed); `run.sh` starts
+both servers and stops them cleanly on **Ctrl+C**. Prefer to do it by hand, on another
+OS, or need to troubleshoot? The full step-by-step is right below.
+
+> **Note:** there is no smaller "just `pip install`" option — this is a local AI app,
+> so the ~5.4 GB model and the Tesseract OCR engine are external runtimes that must be
+> installed on the machine (no package manager bundles a local LLM). The script above
+> automates that for you.
+
+---
+
+## Manual setup — full step-by-step (for reviewers)
 
 > This is a **local AI app**: the model runs on your own machine, so there are no API
 > keys and nothing to pay for. The trade-off is a one-time setup of the model runtime.
