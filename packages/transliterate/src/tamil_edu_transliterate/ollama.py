@@ -44,16 +44,38 @@ _DEFAULT_TIMEOUT = _int_env("OLLAMA_TIMEOUT_S", 120)
 # field): general chat models like gemma2 follow the system role unreliably over
 # /api/generate and otherwise just echo the input or answer conversationally.
 # The trailing "Tamil:" cue + a stop sequence make the model emit exactly one line.
+# Meaning-based, NOT literal: the input is casual phonetic Tamil in Roman letters,
+# so a "transliterate letter-by-letter" instruction produces wrong output
+# (nettru -> நெட்ரு instead of நேற்று). Instead we ask the model to UNDERSTAND the
+# sentence and write correct, natural Tamil, with examples that teach the common
+# phonetic spellings and verb forms.
 _INSTRUCTION = (
-    "Transliterate the Tanglish (Tamil written in English letters) on the last line "
-    "into Tamil Unicode script. Keep real English words, numbers, punctuation and "
-    "spacing exactly as written. Reply with ONLY the Tamil line — no quotes, no notes."
+    "You read casual spoken Tamil written in the English alphabet (Tanglish) and "
+    "rewrite it as correct, natural, written Tamil in Tamil script. The romanized "
+    "spelling is informal and phonetic — interpret what the words MEAN, fix the "
+    "spelling, join or split words correctly, and use proper Tamil grammar and verb "
+    "tenses. Translate any English words into Tamil too. "
+    "ALWAYS reply in Tamil (தமிழ்) script — never English, Hindi, Korean or any other "
+    "language. Keep the meaning EXACT: if the Tanglish is negative (endings like "
+    "-la / -illa / -aadhu mean 'did not'), keep it negative; if it is positive, keep "
+    "it positive — never flip it. Reply with ONLY the final Tamil sentence — no "
+    "quotes, no notes."
 )
 _FEWSHOT = (
-    "Tanglish: vanakkam nanba\nTamil: வணக்கம் நண்பா\n"
-    "Tanglish: naan inniki tamil padikiren\nTamil: நான் இன்னிக்கி தமிழ் படிக்கிறேன்\n"
-    "Tanglish: send the message reply pannu\nTamil: send the message reply பண்ணு\n"
-    "Tanglish: enaku romba pasikuthu\nTamil: எனக்கு ரொம்ப பசிக்குது\n"
+    "Tanglish: nettru raathiri naan nalla thoonganaen\n"
+    "Tamil: நேற்று இரவு நான் நன்றாக தூங்கினேன்.\n"
+    "Tanglish: naan nadakumbothu mazhai vanthuchu\n"
+    "Tamil: நான் நடந்துகொண்டிருந்தபோது மழை வந்தது.\n"
+    "Tanglish: oru naai ennai paathu kuraichuthu\n"
+    "Tamil: ஒரு நாய் என்னை பார்த்து குரைத்தது.\n"
+    "Tanglish: avalukku romba pasikuthu\nTamil: அவளுக்கு மிகவும் பசிக்கிறது.\n"
+    # negation kept negative, vs the positive form:
+    "Tanglish: naan nethu saapdala\nTamil: நான் நேற்று சாப்பிடவில்லை.\n"
+    "Tanglish: thambi pandu vilayadinaan\nTamil: தம்பி பந்து விளையாடினான்.\n"
+    # common English/loan words → proper Tamil:
+    "Tanglish: enaku sweet pidikum\nTamil: எனக்கு இனிப்பு பிடிக்கும்.\n"
+    "Tanglish: naan bus miss panniten\nTamil: நான் பேருந்தை தவறவிட்டேன்.\n"
+    "Tanglish: romba nandri\nTamil: மிக்க நன்றி.\n"
 )
 
 
@@ -80,10 +102,14 @@ class OllamaTransliterator:
         self._url = url or _DEFAULT_URL
         self._timeout = timeout or _DEFAULT_TIMEOUT
 
+    def _prompt(self, text: str) -> str:
+        """Prompt sent to the model. Subclasses (e.g. Sarvam) override this."""
+        return _build_prompt(text)
+
     def _generate(self, text: str, *, temperature: float) -> str:
         payload = {
             "model": self._model,
-            "prompt": _build_prompt(text),
+            "prompt": self._prompt(text),
             "stream": False,
             "options": {
                 "temperature": temperature,

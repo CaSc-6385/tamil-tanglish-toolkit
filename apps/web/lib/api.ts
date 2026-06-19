@@ -39,6 +39,21 @@ export type OcrResponse = {
   duration_ms: number;
 };
 
+export type WordAnalysis = {
+  tamil: string;
+  pos: string;
+  gloss: string;
+  emoji: string;
+};
+
+export type AnalyzeResponse = {
+  tamil: string;
+  words: WordAnalysis[];
+  translate_model: string;
+  analyze_model: string;
+  duration_ms: number;
+};
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 class ApiError extends Error {
@@ -71,6 +86,18 @@ export async function translate(text: string, topk = 3): Promise<TranslateRespon
   });
   if (!r.ok) throw new ApiError(await errorDetail(r), r.status);
   return (await r.json()) as TranslateResponse;
+}
+
+/** Comprehensive pipeline: Sarvam translates Tanglish → Tamil, then gemma2 returns
+ * a per-word breakdown (part of speech + English gloss + a picture emoji). */
+export async function analyze(text: string): Promise<AnalyzeResponse> {
+  const r = await fetch(`${BASE_URL}/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+  if (!r.ok) throw new ApiError(await errorDetail(r), r.status);
+  return (await r.json()) as AnalyzeResponse;
 }
 
 /** OCR an image (printed Tamil / Tanglish) → extracted text + per-line confidence.

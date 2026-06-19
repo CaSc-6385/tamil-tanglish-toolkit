@@ -53,6 +53,31 @@ class OcrResponse(BaseModel):
     duration_ms: int = Field(..., ge=0, description="Server-side processing time in milliseconds")
 
 
+class AnalyzeRequest(BaseModel):
+    text: str = Field(..., min_length=0, max_length=2000, description="Tanglish input")
+
+
+class WordAnalysisOut(BaseModel):
+    """One analysed Tamil word. Mirrors `tamil_edu_grammar.WordAnalysis`."""
+
+    tamil: str = Field(..., description="The Tamil word")
+    pos: str = Field(..., description="Part of speech (noun, verb, adjective, ...)")
+    gloss: str = Field("", description="Short English meaning")
+    emoji: str = Field("", description="A picture emoji for concrete words, else empty")
+
+
+class AnalyzeResponse(BaseModel):
+    """Comprehensive result: Sarvam translation + gemma2 word-by-word breakdown."""
+
+    tamil: str = Field(..., description="Tamil translation (Sarvam-Translate)")
+    words: list[WordAnalysisOut] = Field(
+        default_factory=list, description="Per-word POS + gloss + emoji breakdown (gemma2)"
+    )
+    translate_model: str = Field(..., description="Model used for translation")
+    analyze_model: str = Field("", description="Model used for the grammar breakdown")
+    duration_ms: int = Field(..., ge=0, description="Server-side processing time in milliseconds")
+
+
 class HealthResponse(BaseModel):
     status: str
     backend: str

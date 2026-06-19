@@ -10,12 +10,14 @@ dependencies = [
     "tamil-edu-transliterate",
     "tamil-edu-api",
     "tamil-edu-ocr",
+    "tamil-edu-grammar",
 ]
 
 [tool.uv.sources]
 tamil-edu-transliterate = { workspace = true }
 tamil-edu-api = { workspace = true }
 tamil-edu-ocr = { workspace = true }
+tamil-edu-grammar = { workspace = true }
 
 [project.optional-dependencies]
 dev = [
@@ -47,8 +49,8 @@ package = false
 [tool.uv.workspace]
 # Only directories with a real, buildable pyproject.toml.
 # eval/ is a flat script dir (no pyproject) — its deps live in the root [dev] extras.
-# packages/{grammar,pylib} will be added as they get scaffolded in S2+.
-members = ["packages/transliterate", "apps/api", "packages/ocr"]
+# packages/pylib will be added as it gets scaffolded in S6.
+members = ["packages/transliterate", "apps/api", "packages/ocr", "packages/grammar"]
 exclude = []
 
 [tool.ruff]

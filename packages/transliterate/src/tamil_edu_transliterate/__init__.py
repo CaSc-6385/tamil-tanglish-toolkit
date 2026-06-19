@@ -8,6 +8,7 @@ from tamil_edu_transliterate.baseline import BaselineTransliterator
 from tamil_edu_transliterate.indicxlit import IndicXlitTransliterator
 from tamil_edu_transliterate.ollama import OllamaTransliterator
 from tamil_edu_transliterate.openai_gpt import OpenAiGptTransliterator
+from tamil_edu_transliterate.sarvam import SarvamTransliterator
 from tamil_edu_transliterate.tokenizer import Token, TokenKind, tokenize
 
 __all__ = [
@@ -16,6 +17,7 @@ __all__ = [
     "IndicXlitTransliterator",
     "OllamaTransliterator",
     "OpenAiGptTransliterator",
+    "SarvamTransliterator",
     "Token",
     "TokenKind",
     "TransliterationError",
@@ -39,6 +41,8 @@ def _get(backend: str) -> Transliterator:
             _BACKENDS[backend] = IndicXlitTransliterator()
         elif backend in ("ollama", "ollama-tamil"):
             _BACKENDS[backend] = OllamaTransliterator()
+        elif backend in ("sarvam", "sarvam-translate"):
+            _BACKENDS[backend] = SarvamTransliterator()
         elif backend in ("openai-gpt", "openai_gpt", "openai"):
             _BACKENDS[backend] = OpenAiGptTransliterator()
         else:

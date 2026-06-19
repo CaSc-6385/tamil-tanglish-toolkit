@@ -2,34 +2,38 @@
 
 import { useEffect, useState } from "react";
 
-import { ocr, translate, type TranslateResponse, type Word } from "@/lib/api";
+import { analyze, ocr, type AnalyzeResponse, type WordAnalysis } from "@/lib/api";
 import { capture, initPostHog } from "@/lib/posthog";
 import { useHistory } from "@/lib/use-history";
 
-const SAMPLES = [
-  "vanakkam nanba",
-  "nalla iruka?",
-  "naan padikiren",
-  "send the message reply pannu",
-];
+const SAMPLES = ["vanakkam nanba", "naan periya naai paarthen", "enaku pasikuthu", "nalla iruka?"];
+
+// Color per part of speech (full literal classes so Tailwind keeps them).
+const POS_STYLE: Record<string, string> = {
+  noun: "bg-sky-500/15 text-sky-300 border-sky-400/30",
+  verb: "bg-emerald-500/15 text-emerald-300 border-emerald-400/30",
+  adjective: "bg-violet-500/15 text-violet-300 border-violet-400/30",
+  adverb: "bg-pink-500/15 text-pink-300 border-pink-400/30",
+  pronoun: "bg-teal-500/15 text-teal-300 border-teal-400/30",
+  postposition: "bg-amber-500/15 text-amber-300 border-amber-400/30",
+  conjunction: "bg-slate-500/20 text-slate-300 border-slate-400/30",
+  numeral: "bg-orange-500/15 text-orange-300 border-orange-400/30",
+  particle: "bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-400/30",
+  other: "bg-white/5 text-slate-300 border-white/15",
+};
+const posStyle = (p: string) => POS_STYLE[p] ?? POS_STYLE.other;
 
 export default function HomePage() {
   const [input, setInput] = useState("");
-  const [result, setResult] = useState<TranslateResponse | null>(null);
-  // overrides[wordIndex] = chosen alternative text (per-word swap state)
-  const [overrides, setOverrides] = useState<Record<number, string>>({});
-  // openIdx = which word's popover is currently open
-  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  // OCR (image → text) state
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrNote, setOcrNote] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const { history, add: addHistory, remove: removeHistory, clear: clearHistory } = useHistory();
 
-  // Initialize PostHog once on mount (no-op if NEXT_PUBLIC_POSTHOG_KEY unset).
   useEffect(() => {
     initPostHog();
   }, []);
@@ -39,49 +43,36 @@ export default function HomePage() {
     if (!input.trim()) return;
     setLoading(true);
     setError(null);
-    setOverrides({});
-    setOpenIdx(null);
     const tStart = performance.now();
-    capture("translate.requested", { length: input.length });
+    capture("analyze.requested", { length: input.length });
     try {
-      const r = await translate(input, 3);
+      const r = await analyze(input);
       setResult(r);
-      addHistory({ tanglish: input, tamil: r.tamil, backend: r.backend });
-      capture("translate.succeeded", {
-        backend: r.backend,
+      addHistory({ tanglish: input, tamil: r.tamil, backend: r.translate_model });
+      capture("analyze.succeeded", {
         input_length: input.length,
         output_length: r.tamil.length,
+        word_count: r.words.length,
         duration_ms: Math.round(performance.now() - tStart),
         server_duration_ms: r.duration_ms,
-        word_count: r.words.length,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
       setResult(null);
-      capture("translate.error", {
-        message_class: msg.slice(0, 80),
-        input_length: input.length,
-      });
+      capture("analyze.error", { message_class: msg.slice(0, 80), input_length: input.length });
     } finally {
       setLoading(false);
     }
   }
 
-  function currentTamil(): string {
-    if (!result) return "";
-    return result.words.map((w, i) => overrides[i] ?? w.text).join("");
-  }
-
   async function onCopy() {
     if (!result) return;
-    await navigator.clipboard.writeText(currentTamil());
+    await navigator.clipboard.writeText(result.tamil);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
 
-  // Read text from an uploaded image (printed Tamil / Tanglish) and drop it into
-  // the input so the user can review before translating.
   async function onImageSelected(file: File | null | undefined) {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -120,28 +111,23 @@ export default function HomePage() {
 
   function loadFromHistory(tanglish: string) {
     setInput(tanglish);
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function pickAlternative(wordIdx: number, alt: string) {
-    setOverrides((prev) => ({ ...prev, [wordIdx]: alt }));
-    setOpenIdx(null);
-  }
+  const uniquePos = result ? [...new Set(result.words.map((w) => w.pos))] : [];
 
   return (
     <main className="mx-auto max-w-2xl px-5 py-12 sm:py-16">
       <header className="mb-8 animate-fade-up">
         <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-aost-300">
           <span className="h-2 w-2 animate-pulse-dot rounded-full bg-aost-400" aria-hidden="true" />
-          Tanglish → Tamil · free &amp; local
+          Translate · understand · free &amp; local
         </span>
         <h1 className="gradient-text mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl">
           AOST Tamil
         </h1>
         <p className="mt-3 text-lg text-slate-400">
-          Type Tanglish, get correct Tamil.{" "}
+          Type Tanglish → get Tamil, with a word-by-word picture breakdown.{" "}
           <span className="font-tamil text-slate-200">வணக்கம்! 🌸</span>
         </p>
       </header>
@@ -159,7 +145,7 @@ export default function HomePage() {
           name="tanglish"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="e.g. vanakkam nanba"
+          placeholder="e.g. naan periya naai paarthen"
           rows={3}
           maxLength={2000}
           className="w-full resize-y rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-kid text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-aost-400/70 focus:bg-white/[0.07] focus:ring-4 focus:ring-aost-400/15"
@@ -190,8 +176,13 @@ export default function HomePage() {
           {loading && (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink-900/40 border-t-ink-900" />
           )}
-          {loading ? "Translating…" : "Translate to Tamil"}
+          {loading ? "Translating & explaining…" : "Translate & explain"}
         </button>
+        {loading && (
+          <p className="mt-2 text-center text-xs text-slate-500">
+            Sarvam is translating, then gemma2 is breaking it down — this can take ~15s.
+          </p>
+        )}
       </form>
 
       <section
@@ -240,7 +231,7 @@ export default function HomePage() {
           aria-live="assertive"
           className="mb-5 animate-fade-up rounded-2xl border border-red-500/30 bg-red-500/10 p-4"
         >
-          <p className="font-semibold text-red-300">Could not translate</p>
+          <p className="font-semibold text-red-300">Something went wrong</p>
           <p className="mt-0.5 text-sm text-red-200/80">{error}</p>
         </div>
       )}
@@ -257,9 +248,7 @@ export default function HomePage() {
             >
               Tamil
             </h2>
-            <span className="text-xs text-slate-500">
-              {result.backend} · {result.duration_ms} ms
-            </span>
+            <span className="text-xs text-slate-500">{result.duration_ms} ms</span>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-black/30 px-5 py-5">
@@ -267,20 +256,11 @@ export default function HomePage() {
               className="tamil-glow animate-pop-in font-tamil text-kid-lg leading-relaxed text-white"
               lang="ta"
             >
-              {result.words.map((w, i) => (
-                <WordChip
-                  key={i}
-                  word={w}
-                  chosen={overrides[i] ?? w.text}
-                  isOpen={openIdx === i}
-                  onToggle={() => setOpenIdx(openIdx === i ? null : i)}
-                  onPick={(alt) => pickAlternative(i, alt)}
-                />
-              ))}
+              {result.tamil || "—"}
             </p>
           </div>
 
-          <div className="mt-3 flex items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={onCopy}
@@ -293,8 +273,31 @@ export default function HomePage() {
             >
               {copied ? "Copied!" : "Copy"}
             </button>
-            <p className="text-sm text-slate-500">Tap any underlined word to swap.</p>
+            <p className="text-xs text-slate-500">
+              Understood &amp; translated locally · breakdown by {result.analyze_model || "gemma2"}
+            </p>
           </div>
+
+          {result.words.length > 0 && (
+            <div className="mt-6">
+              <h3 className="mb-3 text-sm font-semibold text-slate-200">Sentence breakdown 🧩</h3>
+              <div className="flex flex-wrap gap-2.5">
+                {result.words.map((w, i) => (
+                  <WordCard key={i} w={w} />
+                ))}
+              </div>
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {uniquePos.map((p) => (
+                  <span
+                    key={p}
+                    className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${posStyle(p)}`}
+                  >
+                    {p}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -305,7 +308,7 @@ export default function HomePage() {
         >
           <div className="mb-3 flex items-baseline justify-between">
             <h2 id="history-heading" className="text-sm font-semibold text-slate-200">
-              Recent translations
+              Recent
             </h2>
             <button
               type="button"
@@ -359,91 +362,33 @@ export default function HomePage() {
           >
             Academy of Smart Thinkers
           </a>
-          . Open source on{" "}
-          <a
-            className="text-aost-300 underline-offset-2 hover:underline"
-            href="https://github.com/chandralabs/tamil-edu-toolkit"
-          >
-            GitHub
+          . Powered by free local models via{" "}
+          <a className="text-aost-300 underline-offset-2 hover:underline" href="https://ollama.com">
+            Ollama
           </a>
           .
-        </p>
-        <p className="mt-1">
-          Engine:{" "}
-          <a
-            className="text-aost-300 underline-offset-2 hover:underline"
-            href="https://github.com/chandralabs/tamil-llama"
-          >
-            chandralabs/tamil-llama
-          </a>{" "}
-          via Ollama.
         </p>
       </footer>
     </main>
   );
 }
 
-/**
- * Inline word with alternative-picker popover.
- *
- * - Whitespace tokens render as-is (preserving spacing) with no interaction.
- * - English / punctuation tokens render plain (no alternatives).
- * - Tanglish tokens with >1 alternatives render as a button → popover.
- */
-function WordChip({
-  word,
-  chosen,
-  isOpen,
-  onToggle,
-  onPick,
-}: {
-  word: Word;
-  chosen: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  onPick: (alt: string) => void;
-}) {
-  if (word.kind === "whitespace") {
-    return <span>{chosen}</span>;
-  }
-  if (word.kind !== "tanglish" || word.alternatives.length <= 1) {
-    return <span>{chosen}</span>;
-  }
+/** A single word tile: emoji picture + Tamil + English gloss + colour-coded POS. */
+function WordCard({ w }: { w: WordAnalysis }) {
   return (
-    <span className="relative inline-block">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={isOpen}
-        aria-haspopup="menu"
-        aria-label={`${chosen} — ${word.alternatives.length} alternatives`}
-        lang="ta"
-        className="rounded-md border-b-2 border-dotted border-aost-400/70 px-0.5 transition hover:bg-white/10 focus:bg-white/10"
+    <div className="flex min-w-[88px] max-w-[140px] flex-col items-center gap-1 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-center transition hover:-translate-y-0.5 hover:bg-white/10">
+      <div className="flex h-9 items-center justify-center text-3xl" aria-hidden="true">
+        {w.emoji || <span className="text-base text-slate-600">·</span>}
+      </div>
+      <div className="font-tamil text-xl leading-tight text-white" lang="ta">
+        {w.tamil}
+      </div>
+      {w.gloss && <div className="text-xs text-slate-400">{w.gloss}</div>}
+      <span
+        className={`mt-0.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${posStyle(w.pos)}`}
       >
-        {chosen}
-      </button>
-      {isOpen && (
-        <span
-          role="menu"
-          aria-label={`Alternatives for ${chosen}`}
-          className="absolute left-0 top-full z-10 mt-1 min-w-[9rem] animate-pop-in rounded-xl border border-white/10 bg-ink-700/95 p-1.5 text-base shadow-2xl backdrop-blur"
-        >
-          {word.alternatives.map((alt) => (
-            <button
-              key={alt}
-              type="button"
-              role="menuitem"
-              onClick={() => onPick(alt)}
-              className={`block w-full rounded-lg px-2.5 py-1.5 text-left font-tamil transition hover:bg-white/10 ${
-                alt === chosen ? "bg-aost-400/15 font-semibold text-aost-200" : "text-slate-200"
-              }`}
-              lang="ta"
-            >
-              {alt}
-            </button>
-          ))}
-        </span>
-      )}
-    </span>
+        {w.pos}
+      </span>
+    </div>
   );
 }

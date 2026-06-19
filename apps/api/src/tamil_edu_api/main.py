@@ -25,17 +25,22 @@ from typing import Annotated
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from tamil_edu_grammar import GrammarError
+from tamil_edu_grammar import analyze as analyze_grammar
 from tamil_edu_ocr import OcrError
 from tamil_edu_ocr import ocr as run_ocr
 from tamil_edu_transliterate import TransliterationError, _get  # type: ignore[attr-defined]
 
 from tamil_edu_api import __version__
 from tamil_edu_api.models import (
+    AnalyzeRequest,
+    AnalyzeResponse,
     HealthResponse,
     OcrLineOut,
     OcrResponse,
     TranslateRequest,
     TranslateResponse,
+    WordAnalysisOut,
     WordOut,
 )
 
@@ -191,5 +196,53 @@ async def ocr_endpoint(image: Annotated[UploadFile, File()]) -> OcrResponse:
         lines=[OcrLineOut(text=line.text, confidence=line.confidence) for line in result.lines],
         avg_confidence=result.avg_confidence,
         backend=result.backend,
+        duration_ms=duration_ms,
+    )
+
+
+@app.post("/analyze", response_model=AnalyzeResponse, tags=["analyze"])
+async def analyze_endpoint(req: AnalyzeRequest) -> AnalyzeResponse:
+    """Comprehensive pipeline: Sarvam-Translate does Tanglish → Tamil (its
+    strength), then gemma2 breaks the sentence down word-by-word into part of
+    speech + English gloss + a picture emoji (its strength). The two free local
+    models are combined so the learner sees the translation *and understands it*.
+    """
+    start = time.perf_counter()
+
+    # 1) Tanglish → natural Tamil. We use the gemma2 (ollama) backend: it actually
+    #    *understands* casual phonetic Tanglish, whereas Sarvam-Translate stays too
+    #    literal ("nettru" -> "நெட்ரு" instead of "நேற்று"). Sarvam is still available
+    #    as the `sarvam` backend for callers who want fast literal translation.
+    translate_backend = os.environ.get("ANALYZE_TRANSLATE_BACKEND", "ollama").strip().lower()
+    try:
+        translator = _get(translate_backend)
+        tamil = translator.transliterate(req.text)
+    except TransliterationError as exc:
+        raise HTTPException(status_code=503, detail=f"Translation failed: {exc}") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    translate_model = getattr(translator, "_model", translate_backend)
+
+    # 2) Word-by-word grammar + emoji breakdown with gemma2. Best-effort: if the
+    #    breakdown fails we still return the translation so the UI degrades gracefully.
+    words_out: list[WordAnalysisOut] = []
+    analyze_model = ""
+    if tamil.strip():
+        try:
+            analysis = analyze_grammar(tamil)
+            analyze_model = analysis.model
+            words_out = [
+                WordAnalysisOut(tamil=w.tamil, pos=w.pos, gloss=w.gloss, emoji=w.emoji)
+                for w in analysis.words
+            ]
+        except (GrammarError, ValueError):
+            words_out = []
+
+    duration_ms = int((time.perf_counter() - start) * 1000)
+    return AnalyzeResponse(
+        tamil=tamil,
+        words=words_out,
+        translate_model=translate_model,
+        analyze_model=analyze_model,
         duration_ms=duration_ms,
     )
