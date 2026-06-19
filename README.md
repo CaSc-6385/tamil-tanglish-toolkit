@@ -248,17 +248,18 @@ Open **http://localhost:3000** (first translation takes ~15–30 s while the mod
 
 #### Windows troubleshooting
 
-| Error you see                                                               | Fix                                                                                                                           |
-| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `'ollama' / 'uv' / 'node' / 'pnpm' is not recognized` · `program not found` | You installed it but PowerShell has the **old PATH** — **close and reopen PowerShell**, then `<tool> --version`.              |
-| `running scripts is disabled on this system`                                | Run scripts with `powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1`.                                              |
-| `winget : The term 'winget' is not recognized`                              | Install **App Installer** from the Microsoft Store (that's what provides `winget`), then reopen PowerShell.                   |
-| winget: `No package found matching input criteria`                          | Update App Installer from the Store, or use the direct installer links below.                                                 |
-| `ollama pull` → could not connect / connection refused                      | Ollama isn't running — open the **Ollama** app from Start, or run `ollama serve` in another window, then retry.               |
-| `ollama pull` fails extracting · `zstd` / `program not found` during pull   | Model layers are zstd-compressed — `winget install -e --id Facebook.Zstandard`, reopen PowerShell (`zstd --version`), retry.  |
-| OCR fails: `tesseract is not installed` / not found                         | Set `$env:TESSERACT_CMD="C:\Program Files\Tesseract-OCR\tesseract.exe"` before starting the API; check `tesseract --version`. |
-| `'git' is not recognized`                                                   | `winget install -e --id Git.Git`, then reopen PowerShell.                                                                     |
-| Web shows "Could not reach the server"                                      | Window A (the API on :8000) must be running. Re-check it didn't error.                                                        |
+| Error you see                                                               | Fix                                                                                                                                                                 |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'ollama' / 'uv' / 'node' / 'pnpm' is not recognized` · `program not found` | You installed it but PowerShell has the **old PATH** — **close and reopen PowerShell**, then `<tool> --version`.                                                    |
+| `running scripts is disabled on this system`                                | Run scripts with `powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1`.                                                                                    |
+| `winget : The term 'winget' is not recognized`                              | Install **App Installer** from the Microsoft Store (that's what provides `winget`), then reopen PowerShell.                                                         |
+| winget: `No package found matching input criteria`                          | Update App Installer from the Store, or use the direct installer links below.                                                                                       |
+| `ollama pull` → could not connect / connection refused                      | Ollama isn't running — open the **Ollama** app from Start, or run `ollama serve` in another window, then retry.                                                     |
+| `ollama pull` fails extracting · `zstd` / `program not found` during pull   | Model layers are zstd-compressed — `winget install -e --id Facebook.Zstandard`, reopen PowerShell (`zstd --version`), retry.                                        |
+| OCR fails: `tesseract is not installed` / not found                         | Set `$env:TESSERACT_CMD="C:\Program Files\Tesseract-OCR\tesseract.exe"` before starting the API; check `tesseract --version`.                                       |
+| `'git' is not recognized`                                                   | `winget install -e --id Git.Git`, then reopen PowerShell.                                                                                                           |
+| Browser: `localhost refused to connect` / `This site can't be reached`      | The web server is **still compiling** (first Next.js build takes 20-40s) — wait ~30s and refresh. Confirm Window B prints `Ready` / `Local: http://localhost:3000`. |
+| Web shows "Could not reach the server"                                      | Window A (the API on :8000) must be running. Re-check it didn't error.                                                                                              |
 
 > No `winget`? Download installers directly:
 > [Ollama](https://ollama.com/download/windows) ·

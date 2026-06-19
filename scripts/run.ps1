@@ -31,7 +31,27 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", $api
 # Start the web app in its own window.
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "pnpm --filter web dev"
 
-Write-Host "`nStarting... the first translation takes ~15-30s while the model loads." -ForegroundColor Yellow
-Start-Sleep 10
-Start-Process "http://localhost:3000"
-Write-Host "Open http://localhost:3000  (close the two PowerShell windows to stop)" -ForegroundColor Green
+# Wait until the web server is actually accepting connections before opening the
+# browser. Next.js's first compile on Windows can take 20-40s, and opening too early
+# is what causes "localhost refused to connect".
+function Wait-Port($port, $timeoutSec) {
+    for ($i = 0; $i -lt $timeoutSec; $i++) {
+        try {
+            $c = New-Object Net.Sockets.TcpClient
+            $c.Connect("localhost", $port); $c.Close(); return $true
+        }
+        catch { Start-Sleep 1 }
+    }
+    return $false
+}
+
+Write-Host "`nStarting servers... (first compile can take 20-40s on Windows)" -ForegroundColor Yellow
+if (Wait-Port 3000 120) {
+    Start-Process "http://localhost:3000"
+    Write-Host "Open http://localhost:3000  (close the two PowerShell windows to stop)" -ForegroundColor Green
+}
+else {
+    Write-Host "Web server didn't come up within 2 min. Check 'Window B' (pnpm dev) for errors," -ForegroundColor Red
+    Write-Host "then open http://localhost:3000 manually once it says 'Ready'." -ForegroundColor Red
+}
+Write-Host "Note: the first translation also takes ~15-30s while the model loads." -ForegroundColor Yellow
