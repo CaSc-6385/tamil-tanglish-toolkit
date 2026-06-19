@@ -87,20 +87,32 @@ OS, or need to troubleshoot? The full step-by-step is right below.
 
 ## Windows setup
 
-You have two options on Windows.
+> ### ⚠️ Read this first — it fixes 90% of Windows errors
+>
+> If you see **`'ollama' is not recognized`**, **`program not found`**, or
+> `'uv'/'node'/'pnpm' is not recognized`, it is **almost always** because you installed
+> a tool but your **current PowerShell window still has the old PATH**.
+>
+> **The fix:** after every install, **close the PowerShell window and open a brand-new
+> one** (Start menu → type "PowerShell" → Enter), then continue. Each step below ends
+> with a `--version` check — if it prints a version, that tool is ready.
 
-### Option A — WSL2 (recommended; uses the one-command scripts)
+You have two paths. **Option A (WSL2) is by far the most reliable** — it avoids all the
+Windows PATH issues and uses the same tested scripts as macOS/Linux.
+
+### Option A — WSL2 (recommended)
 
 WSL2 gives you a real Linux environment where `./scripts/setup.sh` and
-`./scripts/run.sh` work exactly as on Linux.
+`./scripts/run.sh` just work.
 
-1. In **PowerShell (Run as Administrator)**, install Ubuntu, then reboot if asked:
+1. In **PowerShell (Run as Administrator)** install Ubuntu, then **restart your PC** if
+   prompted:
 
    ```powershell
    wsl --install -d Ubuntu
    ```
 
-2. Open **Ubuntu** from the Start menu, then inside it:
+2. Open **Ubuntu** from the Start menu (set a username/password the first time), then:
 
    ```bash
    sudo apt-get update
@@ -110,58 +122,130 @@ WSL2 gives you a real Linux environment where `./scripts/setup.sh` and
    ./scripts/run.sh        # starts the API + web app
    ```
 
-3. Open **http://localhost:3000** in your **Windows browser** — WSL forwards localhost
-   automatically. Done.
+3. Open **http://localhost:3000** in your normal **Windows browser** (WSL forwards
+   localhost automatically). Done.
 
-> If you have an NVIDIA GPU, install the Windows NVIDIA driver and WSL2 will use it for
-> the model automatically; otherwise it runs on CPU (slower, still works).
+> NVIDIA GPU? Install the Windows NVIDIA driver and WSL2 uses it automatically;
+> otherwise the model runs on CPU (slower, still works).
 
-### Option B — native Windows (PowerShell, no WSL)
+### Option B — native Windows (PowerShell)
 
-The bash scripts don't run in native PowerShell, so do these steps once. Use
-[winget](https://learn.microsoft.com/windows/package-manager/winget/) (or the linked
-installers below).
+#### B1. One command (recommended for native)
+
+From the project folder, in PowerShell (the `-ExecutionPolicy Bypass` is needed because
+Windows blocks scripts by default):
 
 ```powershell
-# 1. Runtimes + tools
-winget install --id Ollama.Ollama             # local model runtime (starts automatically)
-winget install --id UB-Mannheim.TesseractOCR  # OCR — during install, TICK "Tamil" under languages
-winget install --id astral-sh.uv              # Python tool
-winget install --id OpenJS.NodeJS.LTS         # Node 20+
-npm install -g pnpm
+git clone https://github.com/CaSc-6385/tamil-tanglish-toolkit.git
+cd tamil-tanglish-toolkit
+powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1   # installs everything + the model
+powershell -ExecutionPolicy Bypass -File .\scripts\run.ps1     # launches the app + opens browser
+```
 
-# 2. The model (~5.4 GB, one time)
+`setup.ps1` refreshes PATH after each install, so it avoids the "not recognized" trap.
+(You need `git` and `winget` first — both ship with modern Windows 11; if `git` is
+missing the script installs it.)
+
+#### B2. By hand (if the script fails, or to understand each piece)
+
+> Reminder: **close & reopen PowerShell after each `winget install`.**
+
+**Step 1 — Ollama (the model runtime)**
+
+```powershell
+winget install -e --id Ollama.Ollama --accept-package-agreements --accept-source-agreements
+```
+
+Close PowerShell, open a **new** one, then verify:
+
+```powershell
+ollama --version
+```
+
+**Step 2 — download the model** (Ollama must be running — its installer starts it; if
+not, run `ollama serve` in a separate window):
+
+```powershell
 ollama pull gemma2:9b
+ollama list                # should show gemma2:9b
+```
 
-# 3. Get the code + install dependencies
+**Step 3 — Tesseract (OCR — optional, only for the photo feature)**
+
+```powershell
+winget install -e --id UB-Mannheim.TesseractOCR --accept-package-agreements --accept-source-agreements
+```
+
+In the installer, **tick "Tamil"** under _Additional language data_. Then (new
+PowerShell window):
+
+```powershell
+$env:Path += ";C:\Program Files\Tesseract-OCR"   # if it isn't already on PATH
+tesseract --version
+```
+
+**Step 4 — uv (Python), Node.js, pnpm**
+
+```powershell
+winget install -e --id astral-sh.uv --accept-package-agreements --accept-source-agreements
+winget install -e --id OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements
+```
+
+Close PowerShell, open a **new** one, then:
+
+```powershell
+npm install -g pnpm
+uv --version ; node --version ; pnpm --version   # all three must print a version
+```
+
+**Step 5 — get the code + install dependencies** (new PowerShell window):
+
+```powershell
 git clone https://github.com/CaSc-6385/tamil-tanglish-toolkit.git
 cd tamil-tanglish-toolkit
 uv sync --all-extras
 pnpm install
 ```
 
-Then run it in **two PowerShell windows** (note PowerShell's `$env:` syntax):
+**Step 6 — run it** in **two** PowerShell windows, **both** opened in the project folder
+(`cd path\to\tamil-tanglish-toolkit`). Note PowerShell's `$env:` syntax:
 
 ```powershell
 # Window A — the API
-$env:TRANSLITERATE_BACKEND="ollama"; $env:OCR_BACKEND="tesseract"
-# if OCR can't find Tesseract, also set its path:
+$env:TRANSLITERATE_BACKEND="ollama"
+$env:OCR_BACKEND="tesseract"
+# if OCR can't find Tesseract, also run:
 # $env:TESSERACT_CMD="C:\Program Files\Tesseract-OCR\tesseract.exe"
 uv run uvicorn --app-dir apps/api/src tamil_edu_api.main:app --port 8000
 ```
 
 ```powershell
 # Window B — the web app
+cd path\to\tamil-tanglish-toolkit
 pnpm --filter web dev
 ```
 
-Open **http://localhost:3000**.
+Open **http://localhost:3000** (first translation takes ~15–30 s while the model loads).
 
-> No `winget`? Download the installers directly:
+#### Windows troubleshooting
+
+| Error you see                                                               | Fix                                                                                                                           |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `'ollama' / 'uv' / 'node' / 'pnpm' is not recognized` · `program not found` | You installed it but PowerShell has the **old PATH** — **close and reopen PowerShell**, then `<tool> --version`.              |
+| `running scripts is disabled on this system`                                | Run scripts with `powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1`.                                              |
+| `winget : The term 'winget' is not recognized`                              | Install **App Installer** from the Microsoft Store (that's what provides `winget`), then reopen PowerShell.                   |
+| winget: `No package found matching input criteria`                          | Update App Installer from the Store, or use the direct installer links below.                                                 |
+| `ollama pull` → could not connect / connection refused                      | Ollama isn't running — open the **Ollama** app from Start, or run `ollama serve` in another window, then retry.               |
+| OCR fails: `tesseract is not installed` / not found                         | Set `$env:TESSERACT_CMD="C:\Program Files\Tesseract-OCR\tesseract.exe"` before starting the API; check `tesseract --version`. |
+| `'git' is not recognized`                                                   | `winget install -e --id Git.Git`, then reopen PowerShell.                                                                     |
+| Web shows "Could not reach the server"                                      | Window A (the API on :8000) must be running. Re-check it didn't error.                                                        |
+
+> No `winget`? Download installers directly:
 > [Ollama](https://ollama.com/download/windows) ·
 > [Tesseract (UB Mannheim)](https://github.com/UB-Mannheim/tesseract/wiki) ·
 > [uv](https://docs.astral.sh/uv/getting-started/installation/) ·
-> [Node.js](https://nodejs.org/).
+> [Node.js](https://nodejs.org/) ·
+> [Git](https://git-scm.com/download/win).
 
 ---
 
