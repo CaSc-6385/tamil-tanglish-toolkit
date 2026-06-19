@@ -25,6 +25,9 @@ function Winstall($id) {
 }
 
 Say "Git";        if (Have "git") { Ok "present" }      else { Winstall "Git.Git" }
+# zstd: Ollama's model layers are zstd-compressed; without it `ollama pull`
+# extraction can fail on a clean Windows box ("program not found"). Install first.
+Say "zstd";       if (Have "zstd") { Ok "present" }      else { Winstall "Facebook.Zstandard" }
 Say "Ollama";     if (Have "ollama") { Ok "present" }   else { Winstall "Ollama.Ollama" }
 Say "uv";         if (Have "uv") { Ok "present" }       else { Winstall "astral-sh.uv" }
 Say "Node.js";    if (Have "node") { Ok "present" }     else { Winstall "OpenJS.NodeJS.LTS" }

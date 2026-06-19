@@ -164,6 +164,16 @@ Close PowerShell, open a **new** one, then verify:
 ollama --version
 ```
 
+**Step 1b — zstd** (Windows only). Ollama's model layers are zstd-compressed, so on a
+clean Windows machine `ollama pull` can fail during extraction with a `zstd` /
+`program not found` error. Install it once:
+
+```powershell
+winget install -e --id Facebook.Zstandard --accept-package-agreements --accept-source-agreements
+```
+
+Close PowerShell, open a **new** one, then verify: `zstd --version`.
+
 **Step 2 — download the model** (Ollama must be running — its installer starts it; if
 not, run `ollama serve` in a separate window):
 
@@ -238,6 +248,7 @@ Open **http://localhost:3000** (first translation takes ~15–30 s while the mod
 | `winget : The term 'winget' is not recognized`                              | Install **App Installer** from the Microsoft Store (that's what provides `winget`), then reopen PowerShell.                   |
 | winget: `No package found matching input criteria`                          | Update App Installer from the Store, or use the direct installer links below.                                                 |
 | `ollama pull` → could not connect / connection refused                      | Ollama isn't running — open the **Ollama** app from Start, or run `ollama serve` in another window, then retry.               |
+| `ollama pull` fails extracting · `zstd` / `program not found` during pull    | Model layers are zstd-compressed — `winget install -e --id Facebook.Zstandard`, reopen PowerShell (`zstd --version`), retry. |
 | OCR fails: `tesseract is not installed` / not found                         | Set `$env:TESSERACT_CMD="C:\Program Files\Tesseract-OCR\tesseract.exe"` before starting the API; check `tesseract --version`. |
 | `'git' is not recognized`                                                   | `winget install -e --id Git.Git`, then reopen PowerShell.                                                                     |
 | Web shows "Could not reach the server"                                      | Window A (the API on :8000) must be running. Re-check it didn't error.                                                        |
@@ -247,7 +258,8 @@ Open **http://localhost:3000** (first translation takes ~15–30 s while the mod
 > [Tesseract (UB Mannheim)](https://github.com/UB-Mannheim/tesseract/wiki) ·
 > [uv](https://docs.astral.sh/uv/getting-started/installation/) ·
 > [Node.js](https://nodejs.org/) ·
-> [Git](https://git-scm.com/download/win).
+> [Git](https://git-scm.com/download/win) ·
+> [zstd](https://github.com/facebook/zstd/releases) (Windows binary, for Ollama model extraction).
 
 ---
 
