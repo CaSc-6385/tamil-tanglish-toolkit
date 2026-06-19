@@ -81,10 +81,16 @@ say "Node.js 20+"
 node_major() { node --version 2>/dev/null | sed -E 's/v([0-9]+).*/\1/'; }
 if have node && [ "$(node_major)" -ge 20 ] 2>/dev/null; then
   ok "already installed ($(node --version))"
+elif [ "$PKG" = "brew" ]; then
+  brew install node && ok "installed ($(node --version))"
 else
-  have node && echo "  Node $(node --version) is too old (need 20+); installing newer"
-  install_pkg node && ok "installed"
+  # Debian/Ubuntu's own 'nodejs' package is too old for v20, and there is no package
+  # called 'node' — use NodeSource, the standard way to get a current Node on Ubuntu.
+  have node && echo "  Node $(node --version) is too old (need 20+); upgrading"
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  sudo apt-get install -y nodejs && ok "installed ($(node --version))"
 fi
+have node || { echo "Node install failed. Install Node 20+ manually, then re-run." >&2; exit 1; }
 
 # pnpm via corepack (bundled with Node), pinned to the repo's pnpm@9.12.0 — avoids a
 # "latest" pnpm that's too new for the installed Node and crashes on every run.
