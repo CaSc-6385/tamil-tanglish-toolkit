@@ -30,8 +30,23 @@ Say "Git";        if (Have "git") { Ok "present" }      else { Winstall "Git.Git
 Say "zstd";       if (Have "zstd") { Ok "present" }      else { Winstall "Facebook.Zstandard" }
 Say "Ollama";     if (Have "ollama") { Ok "present" }   else { Winstall "Ollama.Ollama" }
 Say "uv";         if (Have "uv") { Ok "present" }       else { Winstall "astral-sh.uv" }
-Say "Node.js";    if (Have "node") { Ok "present" }     else { Winstall "OpenJS.NodeJS.LTS" }
-Say "pnpm";       if (Have "pnpm") { Ok "present" }     else { npm install -g pnpm; Refresh-Path }
+Say "Node.js 20+"
+$nodeOk = $false
+if (Have "node") {
+    $maj = [int]((node --version) -replace 'v(\d+).*', '$1')
+    if ($maj -ge 20) { Ok "present ($(node --version))"; $nodeOk = $true }
+    else { Write-Host "  Node $(node --version) is too old (need 20+) — installing LTS" -ForegroundColor Yellow }
+}
+if (-not $nodeOk) { Winstall "OpenJS.NodeJS.LTS" }
+
+# pnpm via corepack (bundled with Node), pinned to the repo's pnpm@9.12.0. This avoids
+# `npm install -g pnpm` pulling a "latest" pnpm that's too new for your Node and crashes
+# on every run — the usual cause of the web server never starting.
+Say "pnpm 9.12.0 (via corepack)"
+corepack enable
+corepack prepare pnpm@9.12.0 --activate
+Refresh-Path
+Ok "pnpm $(pnpm --version)"
 
 Say "Tesseract (OCR, optional)"
 if (Have "tesseract") { Ok "present" } else {

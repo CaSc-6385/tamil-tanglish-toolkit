@@ -78,10 +78,19 @@ say "uv (Python package manager)"
 have uv && ok "already installed" || { curl -LsSf https://astral.sh/uv/install.sh | sh; ok "installed"; }
 
 say "Node.js 20+"
-if have node; then ok "already installed ($(node --version))"; else install_pkg node && ok "installed"; fi
+node_major() { node --version 2>/dev/null | sed -E 's/v([0-9]+).*/\1/'; }
+if have node && [ "$(node_major)" -ge 20 ] 2>/dev/null; then
+  ok "already installed ($(node --version))"
+else
+  have node && echo "  Node $(node --version) is too old (need 20+); installing newer"
+  install_pkg node && ok "installed"
+fi
 
-say "pnpm"
-have pnpm && ok "already installed" || { npm install -g pnpm && ok "installed"; }
+# pnpm via corepack (bundled with Node), pinned to the repo's pnpm@9.12.0 — avoids a
+# "latest" pnpm that's too new for the installed Node and crashes on every run.
+say "pnpm 9.12.0 (via corepack)"
+corepack enable 2>/dev/null || true
+corepack prepare pnpm@9.12.0 --activate && ok "pnpm $(pnpm --version)"
 
 # 5. Dependencies -------------------------------------------------------------
 say "Python dependencies (uv sync)"
