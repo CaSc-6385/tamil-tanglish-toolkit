@@ -3,7 +3,8 @@
 # Opens the API and the web app in their own windows, then your browser.
 
 $ErrorActionPreference = "Stop"
-Set-Location (Split-Path $PSScriptRoot -Parent)
+$root = Split-Path $PSScriptRoot -Parent
+Set-Location $root
 
 $model = if ($env:OLLAMA_MODEL) { $env:OLLAMA_MODEL } else { "gemma2:9b" }
 
@@ -21,15 +22,20 @@ if (-not ($tags.models.name -match [regex]::Escape(($model -split ":")[0]))) {
     throw "Model '$model' is not pulled. Run scripts\setup.ps1 (or: ollama pull $model)."
 }
 
-# Start the API in its own window.
+# Start the API in its own window. Each window explicitly cd's to the project root —
+# Start-Process does NOT reliably inherit the current folder on Windows, and starting
+# in the wrong folder is a common cause of "localhost refused to connect" (the server
+# never finds the workspace and exits).
 $api = @"
+Set-Location '$root'
 `$env:TRANSLITERATE_BACKEND='ollama'; `$env:OCR_BACKEND='tesseract'; `$env:OLLAMA_MODEL='$model'
 uv run uvicorn --app-dir apps/api/src tamil_edu_api.main:app --port 8000
 "@
-Start-Process powershell -ArgumentList "-NoExit", "-Command", $api
+Start-Process powershell -WorkingDirectory $root -ArgumentList "-NoExit", "-Command", $api
 
 # Start the web app in its own window.
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "pnpm --filter web dev"
+$web = "Set-Location '$root'; pnpm --filter web dev"
+Start-Process powershell -WorkingDirectory $root -ArgumentList "-NoExit", "-Command", $web
 
 # Wait until the web server is actually accepting connections before opening the
 # browser. Next.js's first compile on Windows can take 20-40s, and opening too early
