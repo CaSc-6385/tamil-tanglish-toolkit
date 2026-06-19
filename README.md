@@ -66,27 +66,197 @@ with one env var (`OLLAMA_MODEL`, `OCR_BACKEND`, `ANALYZE_TRANSLATE_BACKEND`).
 
 ---
 
-## Quickstart
+## Setup & Run — full step-by-step (for reviewers)
 
-**Prereqs:** [Ollama](https://ollama.com), Tesseract, Node 20+, [uv](https://docs.astral.sh/uv/).
+> This is a **local AI app**: the model runs on your own machine, so there are no API
+> keys and nothing to pay for. The trade-off is a one-time setup of the model runtime.
+> Follow the steps in order — each has a **verify** command so you know it worked.
+> Total time: ~15–25 min, most of it the one-time model download.
+
+### 0. What you need
+
+| Requirement    | Why                     | Notes                                                        |
+| -------------- | ----------------------- | ------------------------------------------------------------ |
+| **~16 GB RAM** | run the gemma2 9B model | 8 GB works with the smaller model in step 2b                 |
+| **~9 GB disk** | model (~5.4 GB) + deps  |                                                              |
+| macOS / Linux  | tested platforms        | Windows: use **WSL2** (Ubuntu) and follow the Linux commands |
+| Internet       | one-time downloads      | the app itself runs fully offline afterwards                 |
+
+A GPU is **not required** (Apple-Silicon Macs use the GPU automatically; on a plain
+CPU it just runs slower).
+
+---
+
+### 1. Install Ollama (the local model runtime)
+
+**macOS:**
 
 ```bash
-# 1. models + OCR engine (one time)
-ollama pull gemma2:9b
-brew install tesseract tesseract-lang        # macOS  (apt: tesseract-ocr tesseract-ocr-tam)
-
-# 2. install deps
-uv sync --all-extras
-corepack pnpm install                        # or: npm i -g pnpm && pnpm install
-
-# 3. run (two terminals)
-TRANSLITERATE_BACKEND=ollama OCR_BACKEND=tesseract \
-  uv run uvicorn --app-dir apps/api/src tamil_edu_api.main:app --port 8000
-pnpm --filter web dev                        # → http://localhost:3000
+brew install ollama          # or download the app from https://ollama.com/download
+ollama serve &               # start the background server (Homebrew install)
 ```
 
-Open **http://localhost:3000**, type some Tanglish, and hit **Translate & explain**.
-(First request loads gemma2 into memory; expect ~15s, then faster.)
+(The downloaded **Ollama.app** starts its own server automatically — if you used the
+app, skip `ollama serve`.)
+
+**Linux / WSL2:**
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+ollama serve &               # start the server in the background
+```
+
+**Verify** Ollama is running:
+
+```bash
+curl http://localhost:11434/api/tags        # should return JSON (a {"models":[...]} list)
+```
+
+---
+
+### 2. Download the AI model
+
+```bash
+ollama pull gemma2:9b        # ~5.4 GB, one time. This powers translation + grammar.
+```
+
+**Verify** the model answers:
+
+```bash
+ollama run gemma2:9b "Reply with one word: hello"    # prints a word, then type /bye to exit
+```
+
+**2b. Low-RAM / faster option (optional).** If you have <16 GB RAM or want faster
+responses, use a smaller model and tell the app to use it:
+
+```bash
+ollama pull gemma2:2b
+# then in step 5, prefix the API command with:
+#   OLLAMA_MODEL=gemma2:2b GRAMMAR_MODEL=gemma2:2b
+```
+
+Quality is lower than 9B but it still works and is much faster.
+
+---
+
+### 3. Install Tesseract OCR + Tamil language data (for the photo feature)
+
+**macOS:**
+
+```bash
+brew install tesseract tesseract-lang
+```
+
+**Linux / WSL2:**
+
+```bash
+sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-tam
+```
+
+**Verify** Tamil is available:
+
+```bash
+tesseract --list-langs | grep -E '^(tam|eng)$'      # must list BOTH tam and eng
+```
+
+> The photo/OCR feature is optional — text translation works without Tesseract.
+
+---
+
+### 4. Install the developer tooling
+
+| Tool            | Install                                                                                       | Verify                  |
+| --------------- | --------------------------------------------------------------------------------------------- | ----------------------- |
+| **uv** (Python) | `curl -LsSf https://astral.sh/uv/install.sh \| sh`                                            | `uv --version`          |
+| **Node 20+**    | macOS: `brew install node` · Linux: [nodesource](https://github.com/nodesource/distributions) | `node --version` (≥ 20) |
+| **pnpm**        | `npm install -g pnpm`                                                                         | `pnpm --version`        |
+
+---
+
+### 5. Get the code and install dependencies
+
+```bash
+git clone https://github.com/CaSc-6385/tamil-tanglish-toolkit.git
+cd tamil-tanglish-toolkit
+
+uv sync --all-extras        # installs all Python deps (FastAPI, packages, test deps)
+pnpm install                # installs the web app deps
+```
+
+---
+
+### 6. Run it (two terminals, from the repo root)
+
+**Terminal A — the API (backend):**
+
+```bash
+TRANSLITERATE_BACKEND=ollama OCR_BACKEND=tesseract \
+  uv run uvicorn --app-dir apps/api/src tamil_edu_api.main:app --port 8000
+```
+
+**Verify** the backend is up:
+
+```bash
+curl http://localhost:8000/health           # → {"status":"ok",...}
+```
+
+**Terminal B — the web app (frontend):**
+
+```bash
+pnpm --filter web dev                        # serves http://localhost:3000
+```
+
+---
+
+### 7. Use it
+
+Open **http://localhost:3000**, type some Tanglish (e.g. `naan periya naai paarthen`),
+and click **Translate & explain**.
+
+> ⏳ The **first** request loads the model into memory, so it can take **~15–30 s**.
+> Every request after that is faster. This is normal for a local model — please wait.
+
+**Verify the whole pipeline from the command line** (optional):
+
+```bash
+curl -s -X POST http://localhost:8000/analyze \
+  -H 'Content-Type: application/json' \
+  -d '{"text":"naan periya naai paarthen"}'
+# → {"tamil":"நான் பெரிய நாயைப் பார்த்தேன்.","words":[{"tamil":"நான்","pos":"pronoun",...}], ...}
+```
+
+---
+
+### Troubleshooting
+
+| Symptom                                               | Fix                                                                                          |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `Ollama unreachable` / 503 from `/analyze`            | Ollama isn't running — run `ollama serve` (or open Ollama.app); check `curl :11434/api/tags` |
+| `model 'gemma2:9b' not found`                         | Run `ollama pull gemma2:9b` (step 2)                                                         |
+| First translation is very slow / "Translating…" hangs | Normal on first call (model loading). Wait ~30 s; or use `gemma2:2b` (step 2b)               |
+| OCR returns "Tesseract failed"                        | Install Tesseract + Tamil data (step 3); confirm `tesseract --list-langs` shows `tam`        |
+| `Address already in use` on :8000 / :3000             | Another process is using the port: `lsof -ti :8000 \| xargs kill` then retry                 |
+| Web shows "Could not reach the server"                | Make sure Terminal A (the API on :8000) is running                                           |
+| Out of memory while running gemma2:9b                 | Use the smaller model: `OLLAMA_MODEL=gemma2:2b GRAMMAR_MODEL=gemma2:2b` (step 2b)            |
+
+---
+
+### One-shot quick reference
+
+```bash
+# prerequisites (macOS)
+brew install ollama tesseract tesseract-lang node && npm i -g pnpm
+curl -LsSf https://astral.sh/uv/install.sh | sh
+ollama serve & ; ollama pull gemma2:9b
+
+# build + run
+git clone https://github.com/CaSc-6385/tamil-tanglish-toolkit.git && cd tamil-tanglish-toolkit
+uv sync --all-extras && pnpm install
+# terminal A:
+TRANSLITERATE_BACKEND=ollama OCR_BACKEND=tesseract uv run uvicorn --app-dir apps/api/src tamil_edu_api.main:app --port 8000
+# terminal B:
+pnpm --filter web dev      # → http://localhost:3000
+```
 
 ---
 
